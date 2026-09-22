@@ -1,0 +1,119 @@
+/// Turns a live transcript plus Jev decisions into commands.
+///
+/// Every partial transcript becomes a request for the words not yet used ("tail").
+/// Closed actions fire once `stableCount` partials in a row agree; open actions fire when the speaker pauses.
+/// Firing consumes the tail, so the rest of the sentence becomes the next command.
+public struct Engine: Sendable {
+    public struct Request: Equatable, Sendable {
+        public let seq: Int
+        public let epoch: Int
+        /// Words already consumed when this tail was cut.
+        public let consumed: Int
+        public let tail: [String]
+        public var text: String { tail.joined(separator: " ") }
+    }
+
+    public struct Step: Equatable, Sendable {
+        public var command: Command?
+        /// Leftover words to ask about right away (the speaker may already be silent).
+        public var request: Request?
+    }
+
+    public var earlyThreshold: Double
+    public var pauseThreshold: Double
+    public var stableCount: Int
+    public private(set) var consumed = 0
+
+    private var words: [String] = []
+    private var epoch = 0
+    private var seq = 0
+    private var lastTail: [String] = []
+    private var latest: (request: Request, decision: Decision)?
+    private var paused = false
+    private var streak: (command: Command, count: Int)?
+
+    public init(earlyThreshold: Double = 0.85, pauseThreshold: Double = 0.7, stableCount: Int = 2) {
+        self.earlyThreshold = earlyThreshold
+        self.pauseThreshold = pauseThreshold
+        self.stableCount = stableCount
+    }
+
+    /// A new partial from speech recognition: the whole utterance so far.
+    public mutating func hear(_ transcript: String) -> Request? {
+        // ponytail: word-count offsets; a recognizer rewrite that merges words ("x dot com" → "x.com") shifts them
+        words = transcript.split(whereSeparator: \.isWhitespace).map(String.init)
+        paused = false
+        return nextRequest()
+    }
+
+    /// The speaker went quiet.
+    public mutating func pause() -> Step {
+        paused = true
+        guard let latest, latest.request.seq == seq else { return Step() }  // newest answer still in flight
+        return fire(onPause(latest.decision), consuming: latest.request)
+    }
+
+    /// Jev answered `request`.
+    public mutating func receive(_ decision: Decision, for request: Request) -> Step {
+        guard request.epoch == epoch, request.seq > (latest?.request.seq ?? 0) else { return Step() }  // stale or late
+        latest = (request, decision)
+        let command = paused && request.seq == seq ? onPause(decision) : onPartial(decision)
+        return fire(command, consuming: request)
+    }
+
+    /// Speech recognition restarted: a fresh utterance.
+    public mutating func reset() {
+        words = []
+        consumed = 0
+        epoch += 1
+        lastTail = []
+        latest = nil
+        paused = false
+        streak = nil
+    }
+
+    private mutating func nextRequest() -> Request? {
+        let tail = Array(words.dropFirst(consumed))
+        guard !tail.isEmpty, tail != lastTail else { return nil }
+        lastTail = tail
+        seq += 1
+        return Request(seq: seq, epoch: epoch, consumed: consumed, tail: tail)
+    }
+
+    private mutating func onPartial(_ d: Decision) -> Command? {
+        let candidate: Command? = switch d.action {
+        case .openApp where d.appProbability >= earlyThreshold: d.app.map(Command.openApp)
+        case .newItem: .newItem
+        default: nil
+        }
+        guard let candidate, d.confidence >= earlyThreshold else {
+            streak = nil
+            return nil
+        }
+        let count = (streak.flatMap { $0.command == candidate ? $0.count : nil } ?? 0) + 1
+        streak = (candidate, count)
+        return count >= stableCount ? candidate : nil
+    }
+
+    private func onPause(_ d: Decision) -> Command? {
+        guard d.confidence >= pauseThreshold else { return nil }
+        switch d.action {
+        case .openApp: return d.appProbability >= pauseThreshold ? d.app.map(Command.openApp) : nil
+        case .newItem: return .newItem
+        case .openURL: return d.argument.flatMap(Site.url).map(Command.openURL)
+        case .webSearch: return d.argument.map(Command.webSearch)
+        case .typeText: return d.argument.map(Command.typeText)
+        case .none: return nil
+        }
+    }
+
+    private mutating func fire(_ command: Command?, consuming request: Request) -> Step {
+        guard let command else { return Step() }
+        consumed = request.consumed + request.tail.count
+        epoch += 1
+        latest = nil
+        streak = nil
+        lastTail = []
+        return Step(command: command, request: nextRequest())
+    }
+}
