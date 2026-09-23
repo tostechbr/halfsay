@@ -36,6 +36,7 @@ public struct Engine: Sendable {
     private var latest: (request: Request, decision: Decision)?
     private var paused = false
     private var streak: (command: Command, count: Int)?
+    private var lastFired: Command?
 
     public init(earlyThreshold: Double = 0.85, openAppThreshold: Double = 0.8, sureApp: Double = 0.95,
                 pauseThreshold: Double = 0.7, stableCount: Int = 2) {
@@ -78,6 +79,7 @@ public struct Engine: Sendable {
         latest = nil
         paused = false
         streak = nil
+        lastFired = nil
     }
 
     private mutating func nextRequest() -> Request? {
@@ -147,14 +149,32 @@ public struct Engine: Sendable {
         }
     }
 
+    /// Words said after a command fired that start no new one still belong to it: "cria uma | nota nova" must not
+    /// create a second note. They are skipped up to the next "e" or command verb, and what follows is asked about again.
     private mutating func fire(_ command: Command?, argument: String?, consuming request: Request) -> Step {
         guard let command else { return Step() }
-        consumed = request.consumed + Self.wordsUsed(by: command, argument: argument, aliases: aliases(of: command), in: request.tail)
+        let newCommand = Self.clauseStart(in: request.tail)
+        if command == lastFired, newCommand > 0 {
+            return Step(command: nil, request: consume(newCommand, of: request))
+        }
+        lastFired = command
+        let used = Self.wordsUsed(by: command, argument: argument, aliases: aliases(of: command), in: request.tail)
+        return Step(command: command, request: consume(used, of: request))
+    }
+
+    private mutating func consume(_ count: Int, of request: Request) -> Request? {
+        consumed = request.consumed + count
         epoch += 1
         latest = nil
         streak = nil
         lastTail = []
-        return Step(command: command, request: nextRequest())
+        return nextRequest()
+    }
+
+    /// Where the next command starts in the words after a fire: the first "e"/"and" or command verb.
+    private static func clauseStart(in tail: [String]) -> Int {
+        tail.map(Vocabulary.normalized).firstIndex { Vocabulary.connectives.contains($0) || Vocabulary.commandVerbs.contains($0) }
+            ?? tail.count
     }
 
     private func aliases(of command: Command) -> [String] {

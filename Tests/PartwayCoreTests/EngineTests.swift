@@ -72,6 +72,37 @@ private func decision(_ action: Action, _ confidence: Double = 1, app: String? =
         #expect(engine.receive(decision(.newItem, app: "Notes"), for: engine.hear("create a new note")!).command == .newItem)
     }
 
+    /// From the eval: "abre as notas e cria uma nota nova" fired new item at "cria uma", then again for "nota nova".
+    @Test func newItemFiredBeforeItsLastWordsFiresOnce() {
+        var engine = Engine()
+        _ = engine.receive(decision(.newItem, 0.86), for: engine.hear("cria")!)
+        #expect(engine.receive(decision(.newItem, 0.95), for: engine.hear("cria uma")!).command == .newItem)
+        let rest = engine.hear("cria uma nota nova")!
+        _ = engine.pause()
+        #expect(engine.receive(decision(.newItem), for: rest).command == nil)
+    }
+
+    @Test func theSameCommandAfterAConnectiveStillFires() {
+        var engine = Engine()
+        _ = engine.receive(decision(.newItem), for: engine.hear("cria uma")!)
+        #expect(engine.receive(decision(.newItem), for: engine.hear("cria uma nota")!).command == .newItem)
+        _ = engine.receive(decision(.newItem), for: engine.hear("cria uma nota e cria outra")!)
+        #expect(engine.receive(decision(.newItem), for: engine.hear("cria uma nota e cria outra nota")!).command == .newItem)
+    }
+
+    @Test func wordsAfterTheFiredCommandAreSkippedUpToTheNextOne() throws {
+        var engine = Engine()
+        _ = engine.receive(decision(.newItem), for: engine.hear("cria uma")!)
+        #expect(engine.receive(decision(.newItem), for: engine.hear("cria uma nota")!).command == .newItem)
+        _ = engine.receive(decision(.newItem), for: engine.hear("cria uma nota nova")!)
+        let step = engine.receive(decision(.newItem), for: engine.hear("cria uma nota nova e digita oi")!)
+        #expect(step.command == nil)
+        let next = try #require(step.request)
+        #expect(next.tail == ["e", "digita", "oi"])
+        _ = engine.pause()
+        #expect(engine.receive(decision(.typeText, arg: "oi"), for: next).command == .typeText("oi"))
+    }
+
     @Test func openTextWaitsForThePause() {
         var engine = Engine()
         #expect(engine.receive(decision(.webSearch, arg: "norbert"), for: engine.hear("google norbert")!).command == nil)
