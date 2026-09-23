@@ -7,7 +7,7 @@
 <p align="center">Voice control for macOS that acts on half a sentence.</p>
 
 <p align="center">
-  <a href="../../releases/latest"><img alt="Download for macOS 14+" src="https://img.shields.io/badge/download-macOS_14%2B-1d1d1f"></a>
+  <a href="../../releases/latest/download/halfsay-macos-arm64.dmg"><img alt="Download for macOS 14+" src="https://img.shields.io/badge/download-macOS_14%2B-1d1d1f"></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-3f7d20"></a>
 </p>
 
@@ -23,7 +23,7 @@ It asks [Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev), T
 
 ## Install
 
-1. Download `halfsay-…-macos-arm64.zip` from [Releases](../../releases), unzip it and move `halfsay.app` to Applications.
+1. Download [halfsay-macos-arm64.dmg](../../releases/latest/download/halfsay-macos-arm64.dmg), open it and drag halfsay to Applications. [Releases](../../releases) has a zip too.
 2. It is not notarized yet, so macOS blocks the first open. Go to System Settings → Privacy & Security → **Open Anyway**.
 3. A pill floats at the top of the screen. Press **⌥Space** (or its ▶ button), paste your Jev API key from [console.typesafe.ai](https://console.typesafe.ai), and allow the Microphone and Speech Recognition.
 4. For typing and ⌘N, turn halfsay on in System Settings → Privacy & Security → Accessibility.
@@ -80,15 +80,11 @@ make app && open build/halfsay.app --args --dry-run --log
 swift run halfsay --text "abre o safari e pesquisa receita de pão de queijo" --dry-run   # no mic
 ```
 
-The decision logic lives in `HalfsayCore` and is tested offline; `Sources/halfsay` is glue over Apple APIs. Notes for coding agents: [AGENTS.md](AGENTS.md). A `v*` tag builds the release zip.
+The decision logic lives in `HalfsayCore` and is tested offline; `Sources/halfsay` is glue over Apple APIs. Notes for coding agents: [AGENTS.md](AGENTS.md). A `v*` tag tests, builds and publishes a release with a dmg and a zip.
 
 ## Contributing
 
 Found a sentence it gets wrong? Run it with `--log` and open an issue with the lines for that sentence. How to test a change, and what the eval costs: [CONTRIBUTING.md](CONTRIBUTING.md).
-
-## Credits
-
-Earlier Jev voice projects: [jev-voice-browser](https://github.com/moritzkremb/jev-voice-browser) (acts per word, in the browser) and [jev-voice](https://github.com/kevinbadi/jev-voice) (Python, on the Mac). Built on [TypeSafe](https://typesafe.ai)'s Jev.
 
 ## License
 
