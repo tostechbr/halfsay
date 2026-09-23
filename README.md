@@ -63,7 +63,7 @@ Chain them in one breath: "abre o terminal e digita ls". It listens in your Mac'
 
 ## Privacy
 
-Speech becomes text on your Mac with Apple's recognizer (on-device when your language supports it). Only the words go to Jev. `--log` keeps a local trace in `~/Library/Logs/halfsay/`, off by default: it holds everything the mic hears.
+Speech becomes text on your Mac with Apple's recognizer (on-device when your language supports it). Only the words go to Jev. `--log` keeps a local trace in `~/Library/Logs/halfsay/`, off by default: it holds everything the mic hears. What it can type, where the key lives and how to report a problem: [SECURITY.md](SECURITY.md).
 
 ## Limitations
 
