@@ -17,6 +17,8 @@ swift run halfsaid --text "open safari and search the weather in lisbon"   # no 
 
 Apple's recognizer transcribes your speech in your Mac's language (`--locale en-US` to pick another), on this Mac when that language supports it. Only the words go to Jev. The first run asks for Microphone and Speech Recognition access. Typing and ⌘N also need Accessibility for your terminal.
 
+`--log` keeps a local trace in `~/Library/Logs/halfsaid/`, one JSON line per event (heard, asked, Jev's answer, fired, ran). It records everything the mic hears, side conversations included, and never leaves your Mac. Off by default.
+
 ## How it decides
 
 - **Closed actions** (open an app, new item) fire mid-sentence once 2 partials in a row agree at ≥ 0.85.

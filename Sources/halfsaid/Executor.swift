@@ -25,8 +25,12 @@ struct Executor {
         }
     }
 
-    func run(_ command: Command) async {
-        guard !dryRun else { return out("   dry run: would \(command)\n") }
+    /// Returns what went wrong, or nil.
+    func run(_ command: Command) async -> String? {
+        guard !dryRun else {
+            out("   dry run: would \(command)\n")
+            return nil
+        }
         do {
             switch command {
             case .openApp(let name):
@@ -39,8 +43,10 @@ struct Executor {
             case .openURL, .webSearch:
                 if let url = command.webURL { try await browse(url) }
             }
+            return nil
         } catch {
             out("⚠︎ \(command): \(error)\n")
+            return "\(error)"
         }
     }
 
