@@ -61,6 +61,8 @@ import Testing
         ("g1 ponto com ponto br", "https://g1.com.br"),
         ("meu site do LinkedIn", "https://linkedin.com"),
         ("my website on github", "https://github.com"),
+        ("linkedin no google", "https://linkedin.com"),
+        ("meu linkedin pelo chrome", "https://linkedin.com"),
     ])
     func spokenSiteBecomesURL(spoken: String, expected: String) {
         #expect(Site.url(from: spoken) == URL(string: expected))

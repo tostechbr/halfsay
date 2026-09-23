@@ -24,10 +24,17 @@ extension Command: CustomStringConvertible {
 enum Site {
     /// Spoken site to URL: "x dot com" → https://x.com, "meu site do LinkedIn" → https://linkedin.com.
     static func url(from spoken: String) -> URL? {
+        let said = spoken.split(separator: " ")
+        let spelled = said.contains { ["dot", "ponto"].contains(Vocabulary.normalized($0)) || $0.contains(".") }
         let framing = Vocabulary.filler.union(Vocabulary.siteWords)
-        let words = spoken.split(separator: " ").filter { !framing.contains(Vocabulary.normalized($0)) }
+        // Unless spelled out ("x dot com"), "linkedin | no google" names the site, then how to reach it.
+        // Only after a real name: in "my website on github" the site comes after "on".
+        let cut = spelled ? nil : said.indices.first { index in
+            Vocabulary.modifierOpeners.contains(Vocabulary.normalized(said[index]))
+                && said[..<index].contains { !framing.contains(Vocabulary.normalized($0)) }
+        }
+        let words = said[..<(cut ?? said.endIndex)].filter { !framing.contains(Vocabulary.normalized($0)) }
         // Several words and no "dot" is a topic ("receita de bolo"), not an address: the engine searches for it instead.
-        let spelled = words.contains { ["dot", "ponto"].contains(Vocabulary.normalized($0)) || $0.contains(".") }
         guard words.count == 1 || spelled else { return nil }
         let host = words.joined(separator: " ")
             .lowercased()
