@@ -13,7 +13,7 @@ let package = Package(
         .executableTarget(
             name: "halfsay",
             dependencies: ["HalfsayCore"],
-            exclude: ["Info.plist"],
+            exclude: ["Info.plist", "AppIcon.icns"],
             linkerSettings: [.unsafeFlags(["-Xlinker", "-sectcreate", "-Xlinker", "__TEXT", "-Xlinker", "__info_plist", "-Xlinker", infoPlist])]
         ),
         .executableTarget(name: "jev-probe", dependencies: ["HalfsayCore"]),

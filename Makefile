@@ -13,11 +13,25 @@ test:
 app:
 	swift build -c release --product halfsay
 	rm -rf $(APP)
-	mkdir -p $(APP)/Contents/MacOS
+	mkdir -p $(APP)/Contents/MacOS $(APP)/Contents/Resources
 	cp .build/release/halfsay $(APP)/Contents/MacOS/halfsay
 	cp Sources/halfsay/Info.plist $(APP)/Contents/Info.plist
+	cp Sources/halfsay/AppIcon.icns $(APP)/Contents/Resources/AppIcon.icns
 	codesign --force --sign - $(APP)
 	@echo "built $(APP): open it, then press ⌥Space"
+
+# docs/icon.svg is the source. Chrome draws it (SVG filters included), sips and iconutil make the app icon and the README image.
+CHROME := /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+icon:
+	mkdir -p build && rm -rf build/AppIcon.iconset && mkdir build/AppIcon.iconset
+	"$(CHROME)" --headless --disable-gpu --hide-scrollbars --force-device-scale-factor=1 --default-background-color=00000000 \
+		--window-size=1024,1024 --screenshot="$(CURDIR)/build/icon-1024.png" "file://$(CURDIR)/docs/icon.svg" 2>/dev/null
+	for size in 16 32 128 256 512; do \
+		sips -z $$size $$size build/icon-1024.png --out build/AppIcon.iconset/icon_$${size}x$${size}.png >/dev/null; \
+		sips -z $$((size * 2)) $$((size * 2)) build/icon-1024.png --out build/AppIcon.iconset/icon_$${size}x$${size}@2x.png >/dev/null; \
+	done
+	iconutil -c icns build/AppIcon.iconset -o Sources/halfsay/AppIcon.icns
+	sips -z 256 256 build/icon-1024.png --out docs/icon.png >/dev/null
 
 # An app opened from Finder gets no shell environment, so the key lives in a private file.
 key:
@@ -27,4 +41,4 @@ key:
 	@chmod 600 ~/.config/halfsay/api-key
 	@test -s ~/.config/halfsay/api-key && echo "key saved to ~/.config/halfsay/api-key"
 
-.PHONY: test app key
+.PHONY: test app icon key
