@@ -2,7 +2,7 @@ name: release
 
 # A v* tag tests, builds partway.app on a macOS runner and publishes the release: a dmg to drag into Applications,
 # the same app zipped, and notes grouped by commit type. A manual run only builds them and keeps them as an artifact.
-# Not notarized yet: that needs an Apple Developer ID (see the Prometeu workflow for the signing secrets it takes).
+# Not notarized yet: that needs an Apple Developer ID and its signing secrets.
 on:
   push:
     tags: ["v*"]
