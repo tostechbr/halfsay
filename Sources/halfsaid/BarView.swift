@@ -200,11 +200,15 @@ private struct BarBackground: View {
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
         Group {
+            #if compiler(>=6.2)  // Liquid Glass needs the macOS 26 SDK; older toolchains build the flat look
             if #available(macOS 26, *) {
                 shape.fill(.clear).glassEffect(.regular.tint(.black.opacity(0.55)), in: shape)
             } else {
                 shape.fill(Color(white: 0.11, opacity: 0.88))
             }
+            #else
+            shape.fill(Color(white: 0.11, opacity: 0.88))
+            #endif
         }
         .shadow(color: .black.opacity(0.28), radius: 14, y: 8)
     }
