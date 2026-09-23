@@ -4,16 +4,19 @@ Voice control for macOS that acts on half a sentence. Say "can you open up the n
 
 It asks [Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) (TypeSafe's System One model) about every word you say. Jev returns typed decisions with probabilities, not text, in ~200 ms, so code can act mid-sentence.
 
-> **Status: v0 in progress.** Engine, probe, microphone and actions work. The floating bar is next.
+> **Status: v0 in progress.** Engine, probe, microphone, actions and the floating bar work. A demo GIF is next.
 
 ## Run it
 
 ```sh
-export TYPESAFE_API_KEY=...        # https://console.typesafe.ai
-swift run halfsaid --dry-run       # listen and print what it would do
-swift run halfsaid                 # listen and act
-swift run halfsaid --text "open safari and search the weather in lisbon"   # no mic: words fed at 160 wpm
+echo 'TYPESAFE_API_KEY=...' > .env   # https://console.typesafe.ai
+make key                             # copies it to ~/.config/halfsaid/api-key (an app opened from Finder has no shell env)
+make app && open build/halfsaid.app  # a bar floats at the top: press ⌥Space and talk
+open build/halfsaid.app --args --dry-run --log   # show what it would do, keep a local trace
+swift run halfsaid --text "open safari and search the weather in lisbon" --dry-run   # no mic: words fed at 160 wpm
 ```
+
+While you talk the bar shows Jev's read: the three likeliest actions, the yes/no "opens an app?" and each command as it fires. It collapses to a pill when you stop. It never takes focus, so typing lands in the app you are using.
 
 Apple's recognizer transcribes your speech in your Mac's language (`--locale en-US` to pick another), on this Mac when that language supports it. Only the words go to Jev. The first run asks for Microphone and Speech Recognition access. Typing and ⌘N also need Accessibility for your terminal.
 

@@ -9,6 +9,8 @@ final class Session {
     static let utteranceEndsAfter: Duration = .seconds(2)
 
     var onUtteranceEnd: () -> Void = {}
+    /// The floating bar, in the app; nil in the terminal-only `--text` mode.
+    var bar: BarModel?
 
     private let client: JevClient
     private let appNames: [String]
@@ -38,11 +40,20 @@ final class Session {
         log?.write("heard", ["utterance": utterance, "text": text])
         waitForSilence()
         if let request = engine.hear(text) { ask(request) }
+        bar?.heard(Transcript.words(text, consumed: engine.consumed))
     }
 
     /// The recognizer stopped by itself (long silence, error). The silence timer ends the utterance if it is running.
     func recognizerEnded() {
         if silence == nil { endUtterance() }
+    }
+
+    /// Listening stopped by hand: fire what the pause would, then close the utterance.
+    func stop() {
+        silence?.cancel()
+        silence = nil
+        handle(engine.pause())
+        endUtterance()
     }
 
     /// Feeds a sentence word by word at speaking pace, like the mic would, then waits for the commands to finish.
@@ -78,8 +89,10 @@ final class Session {
                     "tokens": tokens, "action": decision.action.rawValue, "confidence": decision.confidence,
                     "app": decision.app, "app_p": decision.appProbability, "argument": decision.argument, "complete": decision.complete,
                     "opens_app": decision.opensApp,
+                    "p": decision.actionProbabilities.reduce(into: [String: Double]()) { $0[$1.key.rawValue] = $1.value },
                 ])
                 show(request, decision)
+                bar?.answered(decision)
                 handle(engine.receive(decision, for: request))
             } catch {
                 log?.write("error", ["utterance": utterance, "seq": request.seq, "message": "\(error)"])
@@ -93,6 +106,7 @@ final class Session {
             fired.append((command, .now))
             log?.write("fire", ["utterance": utterance, "command": command.description])
             out("\n⚡ \(command)\n")
+            bar?.fire(command, words: Transcript.words(transcript, consumed: engine.consumed))
             if case .openApp(let app) = command { frontmostHint = app }
             let previous = commands
             let utterance = self.utterance
@@ -100,6 +114,7 @@ final class Session {
                 await previous?.value  // one at a time: ⌘N must not beat Notes to the front
                 let failure = await executor.run(command)
                 log?.write("run", ["utterance": utterance, "command": command.description, "ok": failure == nil, "error": failure])
+                if let failure { bar?.notice = failure }
                 if case .openApp(let app) = command, frontmostHint == app { frontmostHint = nil }
             }
         }
@@ -112,6 +127,7 @@ final class Session {
             try? await Task.sleep(for: Self.pauseAfter)
             guard !Task.isCancelled else { return }
             log?.write("pause", ["utterance": utterance])
+            bar?.paused = true
             handle(engine.pause())
             try? await Task.sleep(for: Self.utteranceEndsAfter - Self.pauseAfter)
             guard !Task.isCancelled else { return }
@@ -130,9 +146,8 @@ final class Session {
         log?.write("end", ["utterance": utterance, "transcript": transcript,
                            "fires": leads.map { ["command": $0.command.description, "lead_s": ($0.seconds * 100).rounded() / 100] as [String: Any] }])
         if !leads.isEmpty { out("\n") }  // leave the live line
-        for (command, seconds) in leads {
-            out(seconds > 0 ? "✓ \(command) · \(format(seconds)) s before you finished\n" : "✓ \(command) · \(format(-seconds)) s after you stopped\n")
-        }
+        for (command, seconds) in leads { out("✓ \(command) · \(describeLead(seconds))\n") }
+        bar?.finish(leads: leads.map { describeLead($0.seconds) })
         fired = []
         transcript = ""
         utterance += 1

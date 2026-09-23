@@ -15,6 +15,7 @@ final class Listener {
     private let sink = BufferSink()
     private var task: SFSpeechRecognitionTask?
     private var generation = 0
+    private var running = false
 
     /// `nil` locale: this Mac's language.
     init?(locale: Locale?, hints: [String]) {
@@ -36,15 +37,35 @@ final class Listener {
     }
 
     func start() throws {
+        guard !running else { return }
         let input = audio.inputNode
         input.installTap(onBus: 0, bufferSize: 1024, format: input.outputFormat(forBus: 0), block: sink.tap)
         audio.prepare()
-        try audio.start()
+        do {
+            try audio.start()
+        } catch {
+            input.removeTap(onBus: 0)
+            throw error
+        }
+        running = true
         restart()
+    }
+
+    func stop() {
+        guard running else { return }
+        running = false
+        generation += 1  // a cancelled request still reporting is ignored
+        task?.cancel()
+        task = nil
+        sink.request?.endAudio()
+        sink.request = nil
+        audio.inputNode.removeTap(onBus: 0)
+        audio.stop()
     }
 
     /// A fresh recognition request per utterance keeps transcripts short.
     func restart() {
+        guard running else { return }
         task?.cancel()
         generation += 1
         let current = generation

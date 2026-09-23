@@ -3,3 +3,4 @@
 .env
 xcuserdata/
 .DS_Store
+build/

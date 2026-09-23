@@ -1,3 +1,4 @@
+import AppKit
 import ApplicationServices
 import Foundation
 import HalfsaidCore
@@ -6,24 +7,22 @@ import HalfsaidCore
     static let usage = """
     usage: halfsaid [--text "sentence"] [--dry-run] [--log] [--locale en-US] [--wpm 160]
 
-      (no --text)  listen on the microphone and act
-      --text       feed a sentence at speaking pace instead of the mic
+      (no --text)  menu bar app: floating bar, ⌥Space to start or stop listening
+      --text       feed a sentence at speaking pace instead of the mic (terminal only)
       --dry-run    print commands instead of running them
       --log        keep a local trace in ~/Library/Logs/halfsaid (everything the mic hears)
       --locale     speech language, e.g. en-US (default: this Mac's language)
       --wpm        speaking pace for --text, in words per minute
     """
 
-    static func main() async {
+    static func main() {
         let options: Options
         do {
             options = try Options(CommandLine.arguments.dropFirst())
         } catch {
             fail("\(error)\n\n\(usage)", code: 2)
         }
-        guard let key = ProcessInfo.processInfo.environment["TYPESAFE_API_KEY"], !key.isEmpty else {
-            fail("Set TYPESAFE_API_KEY (get one at https://console.typesafe.ai).")
-        }
+        let key = APIKey.load()
         let apps = InstalledApps.urls()
         let log: EventLog?
         do {
@@ -32,37 +31,28 @@ import HalfsaidCore
             fail("Could not create the log: \(error)")
         }
         if let log { out("📝 logging to \(log.url.path)\n") }
-        log?.write("start", ["mode": options.text == nil ? "mic" : "text", "dry_run": options.dryRun, "apps": apps.count])
-        let session = Session(client: JevClient(apiKey: key), apps: apps, executor: Executor(apps: apps, dryRun: options.dryRun), log: log)
-        if let text = options.text {
-            if !options.dryRun, !AXIsProcessTrusted() { out(Executor.Failure.needsAccessibility.description + "\n") }
-            await session.replay(text, wpm: options.wpm)
-        } else {
-            await listen(session, options: options, hints: apps.keys.sorted(), log: log)
-        }
-    }
+        log?.write("start", ["mode": options.text == nil ? "app" : "text", "dry_run": options.dryRun, "apps": apps.count])
+        let session = Session(client: JevClient(apiKey: key ?? ""), apps: apps,
+                              executor: Executor(apps: apps, dryRun: options.dryRun), log: log)
 
-    static func listen(_ session: Session, options: Options, hints: [String], log: EventLog?) async {
-        guard await Listener.authorize() else {
-            fail("halfsaid needs Microphone and Speech Recognition access: System Settings → Privacy & Security.")
+        if let text = options.text {
+            guard key != nil else { fail("Set TYPESAFE_API_KEY or run `make key` (get a key at https://console.typesafe.ai).") }
+            if !options.dryRun, !AXIsProcessTrusted() { out(Executor.Failure.needsAccessibility.description + "\n") }
+            Task {
+                await session.replay(text, wpm: options.wpm)
+                exit(0)
+            }
+            dispatchMain()
         }
-        guard let listener = Listener(locale: options.locale, hints: hints) else {
-            fail("No speech recognizer available for \(options.locale?.identifier ?? "this Mac's language").")
-        }
-        if !options.dryRun, !AXIsProcessTrustedWithOptions(["AXTrustedCheckOptionPrompt": true] as CFDictionary) {
-            out(Executor.Failure.needsAccessibility.description + "\n")
-        }
-        listener.onPartial = { session.heard($0) }
-        listener.onEnded = { session.recognizerEnded() }
-        session.onUtteranceEnd = { listener.restart() }
-        do {
-            try listener.start()
-        } catch {
-            fail("The microphone did not start: \(error)")
-        }
-        log?.write("listening", ["language": listener.language, "on_device": listener.onDevice])
-        out("🎙 listening in \(listener.language), transcribed \(listener.onDevice ? "on this Mac" : "by Apple servers") · Ctrl-C to quit\n")
-        while true { try? await Task.sleep(for: .seconds(3600)) }
+
+        let model = BarModel()
+        session.bar = model
+        let controller = AppController(session: session, model: model, options: options, hints: apps.keys.sorted(),
+                                       hasKey: key != nil, log: log)
+        let app = NSApplication.shared
+        app.setActivationPolicy(.accessory)
+        app.delegate = controller
+        withExtendedLifetime(controller) { app.run() }
     }
 }
 
