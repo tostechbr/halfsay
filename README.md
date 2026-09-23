@@ -11,6 +11,12 @@
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-3f7d20"></a>
 </p>
 
+<p align="center">
+  <img src="docs/replay-bar.gif" width="720" alt="The bar hears “abre as notas e digita bom dia”: Notes opens while the sentence is still going, and “bom dia” is typed at the pause.">
+  <br>
+  <sub>Replay of a real <code>--text</code> run, drawn as the bar: Notes opened 0.88 s before the last word.</sub>
+</p>
+
 Say "abre as notas e digita bom dia" and Notes is already open while you are still saying "digita".
 
 It asks [Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev), TypeSafe's System One model, about every word you say. Jev answers with typed decisions and probabilities, not text, in about 200 ms, so the app can act mid-sentence and wait only when it has to.
@@ -38,6 +44,10 @@ Chain them in one breath: "abre o terminal e digita ls". It listens in your Mac'
 
 ## How it decides
 
+<p align="center">
+  <img src="docs/replay-read.gif" width="720" alt="The same run with Jev’s read open: the three likeliest actions, the yes/no “opens an app?”, and each command as it fires.">
+</p>
+
 - Every partial transcript goes to Jev in one request: what to do, which app, which words are the argument, and a yes/no "does it ask to open an app?".
 - **Opening an app fires mid-sentence** once two partials in a row agree and the app is named beyond doubt. A new item needs 0.85.
 - **Search, site and typing wait for the pause**: "search norbert" is not "search norbert wiener" until you stop.
@@ -61,7 +71,7 @@ Speech becomes text on your Mac with Apple's recognizer (on-device when your lan
 - It cannot click buttons in other apps: it does not read the screen yet.
 - Text that sounds like a task ("escreve lista de compras") may do nothing, and the waveform is decorative.
 
-## Develop
+## Build from source
 
 ```sh
 echo 'TYPESAFE_API_KEY=...' > .env && make key   # the app reads ~/.config/halfsay/api-key
@@ -72,8 +82,14 @@ swift run halfsay --text "abre o safari e pesquisa receita de pão de queijo" --
 
 The decision logic lives in `HalfsayCore` and is tested offline; `Sources/halfsay` is glue over Apple APIs. Notes for coding agents: [AGENTS.md](AGENTS.md). A `v*` tag builds the release zip.
 
+## Contributing
+
+Found a sentence it gets wrong? Run it with `--log` and open an issue with the lines for that sentence. How to test a change, and what the eval costs: [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Credits
 
-Inspired by [Andy Gao's demo](https://x.com/instantricecook/status/2100814590300889426). Earlier Jev voice projects: [jev-voice-browser](https://github.com/moritzkremb/jev-voice-browser) (acts per word, in the browser) and [jev-voice](https://github.com/kevinbadi/jev-voice) (Python, on the Mac). Built on [TypeSafe](https://typesafe.ai)'s Jev.
+Earlier Jev voice projects: [jev-voice-browser](https://github.com/moritzkremb/jev-voice-browser) (acts per word, in the browser) and [jev-voice](https://github.com/kevinbadi/jev-voice) (Python, on the Mac). Built on [TypeSafe](https://typesafe.ai)'s Jev.
 
-MIT
+## License
+
+[MIT](LICENSE)
