@@ -66,7 +66,7 @@ import Testing
         #expect(Site.url(from: spoken) == URL(string: expected))
     }
 
-    @Test(arguments: ["", "what?", "x..com", "dot.", "meu site"])
+    @Test(arguments: ["", "what?", "x..com", "dot.", "meu site", "hacker news", "receita de bolo"])
     func garbageIsNotASite(spoken: String) {
         #expect(Site.url(from: spoken) == nil)
     }

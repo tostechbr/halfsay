@@ -25,7 +25,11 @@ enum Site {
     /// Spoken site to URL: "x dot com" → https://x.com, "meu site do LinkedIn" → https://linkedin.com.
     static func url(from spoken: String) -> URL? {
         let framing = Vocabulary.filler.union(Vocabulary.siteWords)
-        let host = spoken.split(separator: " ").filter { !framing.contains(Vocabulary.normalized($0)) }.joined(separator: " ")
+        let words = spoken.split(separator: " ").filter { !framing.contains(Vocabulary.normalized($0)) }
+        // Several words and no "dot" is a topic ("receita de bolo"), not an address: the engine searches for it instead.
+        let spelled = words.contains { ["dot", "ponto"].contains(Vocabulary.normalized($0)) || $0.contains(".") }
+        guard words.count == 1 || spelled else { return nil }
+        let host = words.joined(separator: " ")
             .lowercased()
             .replacingOccurrences(of: " dot ", with: ".")
             .replacingOccurrences(of: " ponto ", with: ".")
