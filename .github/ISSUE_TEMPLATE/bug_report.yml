@@ -1,0 +1,27 @@
+name: It did the wrong thing
+description: A sentence it misheard or acted on wrongly, or a crash
+body:
+  - type: input
+    id: said
+    attributes:
+      label: What you said
+      placeholder: abre as notas e digita bom dia
+    validations:
+      required: true
+  - type: textarea
+    id: happened
+    attributes:
+      label: What happened, and what you expected
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Log lines for that sentence
+      description: Run with `--log`, then copy the lines for this sentence from the newest file in ~/Library/Logs/halfsay/. The log holds everything the mic heard, so remove anything private.
+      render: json
+  - type: input
+    id: mac
+    attributes:
+      label: macOS version and the language you spoke
+      placeholder: macOS 26.1, Português (Brasil)
