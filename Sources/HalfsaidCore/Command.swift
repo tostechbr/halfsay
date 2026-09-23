@@ -22,9 +22,11 @@ extension Command: CustomStringConvertible {
 }
 
 enum Site {
-    /// Spoken site to URL: "x dot com" → https://x.com, "youtube" → https://youtube.com.
+    /// Spoken site to URL: "x dot com" → https://x.com, "meu site do LinkedIn" → https://linkedin.com.
     static func url(from spoken: String) -> URL? {
-        let host = spoken.lowercased()
+        let framing = Vocabulary.filler.union(Vocabulary.siteWords)
+        let host = spoken.split(separator: " ").filter { !framing.contains(Vocabulary.normalized($0)) }.joined(separator: " ")
+            .lowercased()
             .replacingOccurrences(of: " dot ", with: ".")
             .replacingOccurrences(of: " ponto ", with: ".")
             .replacingOccurrences(of: " ", with: "")

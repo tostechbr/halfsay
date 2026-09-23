@@ -30,6 +30,7 @@ final class Session {
         self.appNames = apps.keys.sorted()
         self.executor = executor
         self.log = log
+        engine.appAliases = InstalledApps.aliases(for: apps)
     }
 
     /// A partial transcript: the whole utterance so far.

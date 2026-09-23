@@ -26,6 +26,7 @@ public struct Engine: Sendable {
     public var pauseThreshold: Double
     public var stableCount: Int
     public private(set) var consumed = 0
+    public var appAliases: [String: [String]] = [:]
 
     private var words: [String] = []
     private var epoch = 0
@@ -119,7 +120,7 @@ public struct Engine: Sendable {
 
     private mutating func fire(_ command: Command?, argument: String?, consuming request: Request) -> Step {
         guard let command else { return Step() }
-        consumed = request.consumed + Self.wordsUsed(by: command, argument: argument, in: request.tail)
+        consumed = request.consumed + Self.wordsUsed(by: command, argument: argument, aliases: aliases(of: command), in: request.tail)
         epoch += 1
         latest = nil
         streak = nil
@@ -127,20 +128,41 @@ public struct Engine: Sendable {
         return Step(command: command, request: nextRequest())
     }
 
-    /// Open commands end with their argument, so a command chained after it survives
-    /// ("search cake recipes | and open notes"). Closed commands fire early, while the tail is still just them.
-    static func wordsUsed(by command: Command, argument: String?, in tail: [String]) -> Int {
+    private func aliases(of command: Command) -> [String] {
+        guard case .openApp(let app) = command else { return [] }
+        return [app] + (appAliases[app] ?? [])
+    }
+
+    /// A command ends where its own words end, so the one chained after it survives even when both were said
+    /// before anything fired: open ends at the app's name ("abre as notas | e digita oi"), search, site and typing at
+    /// their argument ("search cake recipes | and open notes").
+    static func wordsUsed(by command: Command, argument: String?, aliases: [String], in tail: [String]) -> Int {
+        let words = tail.map(Vocabulary.normalized)
         switch command {
-        case .openApp, .newItem:
-            return tail.count
+        case .openApp:
+            return mention(of: aliases, in: words) ?? tail.count
+        case .newItem:
+            return tail.count  // ponytail: no span for "a new note", so a command said in the same breath after it is lost
         case .openURL, .webSearch, .typeText:
-            let span = argument?.split(separator: " ").map(String.init) ?? []
-            let words = tail.map { $0.trimmingCharacters(in: .punctuationCharacters) }
-            guard !span.isEmpty, span.count <= words.count else { return tail.count }
-            for start in 0...(words.count - span.count) where Array(words[start..<start + span.count]) == span {
-                return start + span.count
-            }
-            return tail.count
+            let span = argument.map { $0.split(separator: " ").map(Vocabulary.normalized) } ?? []
+            return end(of: span, in: words) ?? tail.count
         }
+    }
+
+    /// Where the earliest full name ends, else the earliest first word ("google" for Google Chrome), plus a trailing "app".
+    private static func mention(of aliases: [String], in words: [String]) -> Int? {
+        let names = aliases.map { $0.split(separator: " ").map(Vocabulary.normalized) }
+        guard var end = names.compactMap({ end(of: $0, in: words) }).min()
+            ?? names.compactMap({ $0.first.flatMap { end(of: [$0], in: words) } }).min() else { return nil }
+        while end < words.count, Vocabulary.appWords.contains(words[end]) { end += 1 }
+        return end
+    }
+
+    private static func end(of span: [String], in words: [String]) -> Int? {
+        guard !span.isEmpty, span.count <= words.count else { return nil }
+        for start in 0...(words.count - span.count) where Array(words[start..<start + span.count]) == span {
+            return start + span.count
+        }
+        return nil
     }
 }

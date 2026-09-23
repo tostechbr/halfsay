@@ -23,3 +23,14 @@ public enum InstalledApps {
         urls(in: folders).keys.sorted()
     }
 }
+
+extension InstalledApps {
+    /// Other names an app is spoken by: the one Finder shows ("Notes" is "Notas" on a Portuguese Mac).
+    public static func aliases(for apps: [String: URL]) -> [String: [String]] {
+        apps.reduce(into: [:]) { result, app in
+            let shown = FileManager.default.displayName(atPath: app.value.path)
+            let localized = shown.hasSuffix(".app") ? String(shown.dropLast(4)) : shown
+            result[app.key] = localized == app.key ? [app.key] : [app.key, localized]
+        }
+    }
+}

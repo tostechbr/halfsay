@@ -12,12 +12,14 @@ import HalfsaidCore
         let args = CommandLine.arguments.dropFirst()
         let sentences = args.isEmpty ? demo : args.map { Sentence(frontmost: "Finder", text: $0) }
         let client = JevClient(apiKey: key)
-        let apps = InstalledApps.names()
+        let urls = InstalledApps.urls()
+        let apps = urls.keys.sorted()
+        let aliases = InstalledApps.aliases(for: urls)
         do {
             let replays = try await withThrowingTaskGroup(of: (Int, Replay).self) { group in
                 for (index, sentence) in sentences.enumerated() {
                     group.addTask {
-                        var replayer = Replayer(client: client, apps: apps, sentence: sentence)
+                        var replayer = Replayer(client: client, apps: apps, aliases: aliases, sentence: sentence)
                         return (index, try await replayer.run())
                     }
                 }
@@ -47,6 +49,8 @@ let demo = [
     Sentence(frontmost: "Finder", text: "abre o google e pesquisa pão de queijo", expect: ["search “pão de queijo”"]),
     Sentence(frontmost: "Notes", text: "digita nos vemos amanhã", expect: ["type “nos vemos amanhã”"]),
     Sentence(frontmost: "Finder", text: "abre as notas e digita comprar pão de queijo", expect: ["open Notes", "type “comprar pão de queijo”"]),
+    Sentence(frontmost: "Finder", text: "abre o notes escreve lista de compras", expect: ["open Notes", "type “lista de compras”"]),
+    Sentence(frontmost: "Finder", text: "entra no site do youtube", expect: ["open https://youtube.com"]),
 ]
 
 struct Sentence: Sendable {
@@ -85,9 +89,10 @@ struct Replayer {
     private var frontmost: String
     private var replay: Replay
 
-    init(client: JevClient, apps: [String], sentence: Sentence) {
+    init(client: JevClient, apps: [String], aliases: [String: [String]], sentence: Sentence) {
         self.client = client
         self.apps = apps
+        engine.appAliases = aliases
         self.frontmost = sentence.frontmost
         self.replay = Replay(sentence: sentence)
     }

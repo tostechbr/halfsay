@@ -120,8 +120,8 @@ private func decision(_ action: Action, _ confidence: Double = 1, app: String? =
         _ = engine.receive(decision(.openApp, app: "Notes"), for: engine.hear("open notes")!)
         let step = engine.receive(decision(.openApp, app: "Notes"), for: engine.hear("open notes and")!)
         #expect(step.command == .openApp("Notes"))
-        #expect(step.request == nil)
-        #expect(engine.hear("open notes and create a new note")?.tail == ["create", "a", "new", "note"])
+        #expect(step.request?.tail == ["and"])  // the open ends at the app's name
+        #expect(engine.hear("open notes and create a new note")?.tail == ["and", "create", "a", "new", "note"])
     }
 
     @Test func fireSendsTheRemainingTailRightAway() {
@@ -164,6 +164,32 @@ private func decision(_ action: Action, _ confidence: Double = 1, app: String? =
         var engine = Engine()
         _ = engine.receive(decision(.webSearch, arg: "norbert wiener"), for: engine.hear("google norbert wiener")!)
         #expect(engine.pause().request == nil)
+    }
+
+    @Test func appCommandSaidAtOnceKeepsTheNextCommand() throws {
+        var engine = Engine()
+        engine.appAliases = ["Notes": ["Notes", "Notas"]]
+        let request = engine.hear("abre as notas e digita oi")!
+        _ = engine.pause()
+        let step = engine.receive(decision(.openApp, app: "Notes"), for: request)
+        #expect(step.command == .openApp("Notes"))
+        let followUp = try #require(step.request)
+        #expect(followUp.tail == ["e", "digita", "oi"])
+    }
+
+    @Test func appNamedByItsFirstWordStillBoundsTheCommand() {
+        #expect(Engine.wordsUsed(by: .openApp("Google Chrome"), argument: nil, aliases: ["Google Chrome"],
+                                 in: ["abre", "o", "google", "e", "pesquisa", "bolo"]) == 3)
+    }
+
+    @Test func accentsDoNotHideTheApp() {
+        #expect(Engine.wordsUsed(by: .openApp("Calendar"), argument: nil, aliases: ["Calendar", "Calendário"],
+                                 in: ["abre", "o", "calendario", "agora"]) == 3)
+    }
+
+    @Test func unknownAppMentionUsesTheWholeTail() {
+        #expect(Engine.wordsUsed(by: .openApp("Visual Studio Code"), argument: nil, aliases: ["Visual Studio Code"],
+                                 in: ["abre", "o", "vscode", "e", "digita"]) == 5)
     }
 
     @Test func lateOlderAnswerIsIgnored() {
