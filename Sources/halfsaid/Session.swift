@@ -12,7 +12,7 @@ final class Session {
     /// The floating bar, in the app; nil in the terminal-only `--text` mode.
     var bar: BarModel?
 
-    private let client: JevClient
+    private var client: JevClient
     private let appNames: [String]
     private let executor: Executor
     private let log: EventLog?
@@ -32,6 +32,11 @@ final class Session {
         self.log = log
         engine.appAliases = InstalledApps.aliases(for: apps)
         engine.browsers = InstalledApps.names(of: NSWorkspace.shared.urlsForApplications(toOpen: URL(string: "https://example.com")!), among: apps)
+    }
+
+    /// A key pasted in the app replaces the one it started with.
+    func use(apiKey: String) {
+        client = JevClient(apiKey: apiKey)
     }
 
     /// A partial transcript: the whole utterance so far.

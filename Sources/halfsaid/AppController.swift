@@ -9,7 +9,7 @@ final class AppController: NSObject, NSApplicationDelegate {
     private let model: BarModel
     private let options: Options
     private let hints: [String]
-    private let hasKey: Bool
+    private var hasKey: Bool
     private let log: EventLog?
     private let hotkey = Hotkey()
     private var panel: BarPanel?
@@ -45,7 +45,29 @@ final class AppController: NSObject, NSApplicationDelegate {
         } catch {
             model.notice = "⌥Space is taken by another app: use the menu bar icon."
         }
-        if !hasKey { model.notice = "No Jev key: run `make key` in the halfsaid folder, then reopen." }
+        if !hasKey { model.notice = "No Jev key yet: press ⌥Space to add yours." }
+    }
+
+    /// Asks for the key in a dialog: an app downloaded from Releases has no `.env` and no `make key`.
+    @objc private func promptForKey() {
+        NSApp.activate()  // the panel never takes focus, so the dialog brings the app forward to accept typing
+        let alert = NSAlert()
+        alert.messageText = "Paste your Jev API key"
+        alert.informativeText = "Get one at console.typesafe.ai. It is saved only on this Mac, readable only by you, in ~/.config/halfsaid/api-key."
+        let field = NSSecureTextField(frame: NSRect(x: 0, y: 0, width: 320, height: 24))
+        alert.accessoryView = field
+        alert.addButton(withTitle: "Save")
+        alert.addButton(withTitle: "Cancel")
+        alert.window.initialFirstResponder = field
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        do {
+            try APIKey.save(field.stringValue)
+            session.use(apiKey: field.stringValue.trimmingCharacters(in: .whitespacesAndNewlines))
+            hasKey = true
+            model.notice = nil
+        } catch {
+            model.notice = "The key was not saved: \(error)"
+        }
     }
 
     @objc func toggle() {
@@ -57,6 +79,7 @@ final class AppController: NSObject, NSApplicationDelegate {
     }
 
     private func start() async {
+        if !hasKey { promptForKey() }
         guard hasKey else { return }
         guard await Listener.authorize() else {
             model.notice = "halfsaid needs Microphone and Speech Recognition: System Settings → Privacy & Security."
@@ -114,6 +137,9 @@ final class AppController: NSObject, NSApplicationDelegate {
         toggleItem.target = self
         menu.addItem(toggleItem)
         self.toggleItem = toggleItem
+        let keyItem = NSMenuItem(title: "Set Jev API key…", action: #selector(promptForKey), keyEquivalent: "")
+        keyItem.target = self
+        menu.addItem(keyItem)
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Quit halfsaid", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         item.menu = menu
