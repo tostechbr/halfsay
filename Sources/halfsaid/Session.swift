@@ -104,6 +104,11 @@ final class Session {
             } catch {
                 log?.write("error", ["utterance": utterance, "seq": request.seq, "message": "\(error)"])
                 out("\n⚠︎ Jev: \(error)\n")
+                bar?.notice = if case JevError.http(status: 401, _) = error {
+                    "Jev refused the key: menu bar icon → Set Jev API key…"
+                } else {
+                    "Jev did not answer: \(error)"
+                }
             }
         }
     }
