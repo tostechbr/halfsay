@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key>
+    <string>dev.tostechbr.halfsaid</string>
+    <key>CFBundleName</key>
+    <string>halfsaid</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>halfsaid listens for your voice commands.</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>halfsaid turns your speech into text to understand commands.</string>
+</dict>
+</plist>

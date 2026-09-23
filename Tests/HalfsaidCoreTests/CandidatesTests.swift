@@ -60,6 +60,31 @@ import Testing
         #expect(Command.webSearch("norbert wiener").description == "search “norbert wiener”")
         #expect(Command.typeText("hello").description == "type “hello”")
     }
+
+    @Test func browserCommandsHaveAWebAddress() {
+        #expect(Command.webSearch("pão de queijo").webURL?.absoluteString == "https://www.google.com/search?q=p%C3%A3o%20de%20queijo")
+        #expect(Command.openURL(URL(string: "https://x.com")!).webURL == URL(string: "https://x.com"))
+        #expect(Command.openApp("Notes").webURL == nil)
+    }
+}
+
+@Suite struct KeystrokesTests {
+    @Test func shortTextIsOneChunk() {
+        #expect(Keystrokes.chunks("hello") == ["hello"])
+    }
+
+    @Test func longTextSplitsAtTwentyUnits() {
+        #expect(Keystrokes.chunks(String(repeating: "a", count: 25)) == [String(repeating: "a", count: 20), "aaaaa"])
+    }
+
+    @Test func neverSplitsACharacter() {
+        let family = "👨‍👩‍👧‍👦"  // one Character, 11 UTF-16 units
+        #expect(Keystrokes.chunks(family + family) == [family, family])
+    }
+
+    @Test func emptyTextTypesNothing() {
+        #expect(Keystrokes.chunks("").isEmpty)
+    }
 }
 
 @Suite struct InstalledAppsTests {
@@ -72,5 +97,6 @@ import Testing
         try fm.createDirectory(at: b.appendingPathComponent("Foo.app"), withIntermediateDirectories: true)
         try Data().write(to: a.appendingPathComponent("notes.txt"))
         #expect(InstalledApps.names(in: [a.path, b.path, "/nope/missing"]) == ["Bar", "Foo"])
+        #expect(InstalledApps.urls(in: [a.path, b.path])["Foo"]?.path == a.appendingPathComponent("Foo.app").path)
     }
 }

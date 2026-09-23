@@ -4,7 +4,18 @@ Voice control for macOS that acts on half a sentence. Say "can you open up the n
 
 It asks [Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) (TypeSafe's System One model) about every word you say. Jev returns typed decisions with probabilities, not text, in ~200 ms, so code can act mid-sentence.
 
-> **Status: v0 in progress.** The decision engine and the probe work. Mic, actions and the floating bar are next.
+> **Status: v0 in progress.** Engine, probe, microphone and actions work. The floating bar is next.
+
+## Run it
+
+```sh
+export TYPESAFE_API_KEY=...        # https://console.typesafe.ai
+swift run halfsaid --dry-run       # listen and print what it would do
+swift run halfsaid                 # listen and act
+swift run halfsaid --text "open safari and search the weather in lisbon"   # no mic: words fed at 160 wpm
+```
+
+Apple's recognizer transcribes your speech in your Mac's language (`--locale en-US` to pick another), on this Mac when that language supports it. Only the words go to Jev. The first run asks for Microphone and Speech Recognition access. Typing and ⌘N also need Accessibility for your terminal.
 
 ## How it decides
 
@@ -12,27 +23,24 @@ It asks [Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) (T
 - **Open actions** (search, website, type text) wait for the pause: "search norbert" is not "search norbert wiener" until you stop.
 - **Jev never writes text.** Code cuts every span of what you said, Jev picks one, and it is copied verbatim.
 - Firing consumes the words, so the rest of the sentence becomes the next command.
+- Search, website and typing use words only up to their argument, so "search cake recipes and open notes" runs both.
 
-## Probe: when can you act on half a sentence?
+## Measured at speaking pace
 
-`jev-probe` replays sentences word by word through the same engine and questions. It waits for each answer, so network lag is not counted.
+`--text` at 160 wpm, network included:
 
 | said | fired |
 |---|---|
-| can you open up the notes app for me and once you're there can you create a new note | open Notes after 7/19 words · new item after 19/19 |
-| and inside this new note let's make the title say hello | type “hello” at the pause |
-| can you open up safari and google search norbert wiener | open Safari after 6/10 · search “norbert wiener” at the pause |
-| now can you open up x dot com | open https://x.com at the pause |
-| abre o safari e pesquisa receita de pão de queijo | open Safari after 4/10 · search “receita de pão de queijo” at the pause |
+| can you open up the notes app for me and once you're there can you create a new note and inside this new note let's make the title say hello | open Notes **8.3 s before the end** · new item 3.5 s before · type “hello” 0.6 s after |
+| can you open up safari and google search norbert wiener | open Safari 1.3 s before · search “norbert wiener” 0.6 s after |
+| abre o safari e pesquisa receita de pão de queijo | open Safari 2.0 s before · search “receita de pão de queijo” 0.6 s after |
 | i was just telling my friend about the notes app | nothing: not a command |
 
-68 calls, median 302 ms. Keep one connection warm: a fresh TLS handshake alone costs ~440 ms, a warm call ~205 ms.
+Open actions land ~0.6 s after you stop. That is the pause they wait for; Jev's answer is already in.
 
-```sh
-export TYPESAFE_API_KEY=...   # https://console.typesafe.ai
-swift run jev-probe
-swift run jev-probe "open safari and search the weather in lisbon"
-```
+## Probe
+
+`swift run jev-probe` replays sentences word by word and waits for each answer, printing a per-word table of what Jev decided and how few words each command needed ("open Notes after 7/19 words"). Median 302 ms over 68 calls. Keep one connection warm: a fresh TLS handshake alone costs ~440 ms, a warm call ~205 ms.
 
 ## Develop
 

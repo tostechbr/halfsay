@@ -1,0 +1,6 @@
+# Agents
+
+- Test: `make test` (plain `swift test` needs Xcode). Try without a mic: `swift run halfsaid --text "…" --dry-run`.
+- Logic lives in `HalfsaidCore` and is tested offline. `Sources/halfsaid` is thin glue over Apple APIs, checked by running it.
+- Swift 6 trap: a closure handed to an Apple API that calls back on its own queue (TCC permission prompts, Speech, audio taps) must be `@Sendable` or built in a `nonisolated` function. Built inside `@MainActor` code it inherits main-actor isolation and crashes at runtime with `dispatch_assert_queue_fail` (hit on 22/09 in `Listener.authorize`).
+- Changing question wording, criteria or thresholds: run `swift run jev-probe` (the eval, real API, ~1 cent) at least twice and compare scores, because results vary run to run. On 22/09 "what should the computer do first?" scored 6/9; the plain "what should the computer do?" scored 8/9 and 9/9.

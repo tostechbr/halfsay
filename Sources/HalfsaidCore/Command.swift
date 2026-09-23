@@ -36,3 +36,19 @@ enum Site {
         return URL(string: "https://" + (labels.count > 1 ? host : host + ".com"))
     }
 }
+
+extension Command {
+    /// Where browser commands go.
+    public var webURL: URL? {
+        switch self {
+        case .openURL(let url):
+            return url
+        case .webSearch(let query):
+            var search = URLComponents(string: "https://www.google.com/search")
+            search?.queryItems = [URLQueryItem(name: "q", value: query)]
+            return search?.url
+        default:
+            return nil
+        }
+    }
+}
