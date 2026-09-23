@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import HalfsayCore
+@testable import PartwayCore
 
 @Suite struct InstalledAppsTests {
     @Test func listsAppBundlesAcrossFoldersOnce() throws {

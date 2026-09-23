@@ -1,5 +1,5 @@
 import AppKit
-import HalfsayCore
+import PartwayCore
 
 /// Speech partials → Engine → Jev → executor, and how early each command fired.
 @MainActor

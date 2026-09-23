@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import HalfsayCore
+@testable import PartwayCore
 
 final class StubProtocol: URLProtocol {
     nonisolated(unsafe) static var reply: (status: Int, body: Data) = (200, Data())

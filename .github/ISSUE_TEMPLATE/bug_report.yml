@@ -18,7 +18,7 @@ body:
     id: log
     attributes:
       label: Log lines for that sentence
-      description: Run with `--log`, then copy the lines for this sentence from the newest file in ~/Library/Logs/halfsay/. The log holds everything the mic heard, so remove anything private.
+      description: Run with `--log`, then copy the lines for this sentence from the newest file in ~/Library/Logs/partway/. The log holds everything the mic heard, so remove anything private.
       render: json
   - type: input
     id: mac

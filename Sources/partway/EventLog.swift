@@ -1,6 +1,6 @@
 import Foundation
 
-/// Opt-in local trace (`--log`): one JSON object per line in ~/Library/Logs/halfsay, never sent anywhere.
+/// Opt-in local trace (`--log`): one JSON object per line in ~/Library/Logs/partway, never sent anywhere.
 /// It holds everything the mic heard, side conversations included.
 @MainActor
 final class EventLog {
@@ -9,7 +9,7 @@ final class EventLog {
     private let started = ContinuousClock.now
 
     init() throws {
-        let folder = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Logs/halfsay")
+        let folder = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Logs/partway")
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         let stamp = ISO8601DateFormatter().string(from: .now).replacingOccurrences(of: ":", with: "-")
         url = folder.appendingPathComponent("\(stamp).jsonl")

@@ -5,7 +5,7 @@ public enum APIKey {
         public var description: String { "the key is empty" }
     }
 
-    /// Keeps the key for the app, readable only by you (0600), in ~/.config/halfsay.
+    /// Keeps the key for the app, readable only by you (0600), in ~/.config/partway.
     public static func save(_ key: String, to file: URL = file) throws {
         let key = key.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !key.isEmpty else { throw Blank() }
@@ -16,7 +16,7 @@ public enum APIKey {
         }
         try fm.setAttributes([.posixPermissions: 0o600], ofItemAtPath: file.path)  // also when it replaced an older key
     }
-    public static let file = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".config/halfsay/api-key")
+    public static let file = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".config/partway/api-key")
 
     /// TYPESAFE_API_KEY from the environment, else the key file: an app opened from Finder gets no shell environment.
     public static func load(environment: [String: String] = ProcessInfo.processInfo.environment, file: URL = file) -> String? {

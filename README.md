@@ -1,13 +1,13 @@
 <p align="center">
-  <img src="docs/icon.png" width="128" height="128" alt="halfsay icon: a speech bubble, half said and half only dashed">
+  <img src="docs/icon.png" width="128" height="128" alt="partway icon: a speech bubble, half said and half only dashed">
 </p>
 
-<h1 align="center">halfsay</h1>
+<h1 align="center">partway</h1>
 
-<p align="center">Voice control for macOS that acts on half a sentence.</p>
+<p align="center">Voice control for macOS that acts partway through your sentence.</p>
 
 <p align="center">
-  <a href="../../releases/latest/download/halfsay-macos-arm64.dmg"><img alt="Download for macOS 14+" src="https://img.shields.io/badge/download-macOS_14%2B-1d1d1f"></a>
+  <a href="../../releases/latest/download/partway-macos-arm64.dmg"><img alt="Download for macOS 14+" src="https://img.shields.io/badge/download-macOS_14%2B-1d1d1f"></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-3f7d20"></a>
 </p>
 
@@ -23,10 +23,10 @@ It asks [Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev), T
 
 ## Install
 
-1. Download [halfsay-macos-arm64.dmg](../../releases/latest/download/halfsay-macos-arm64.dmg), open it and drag halfsay to Applications. [Releases](../../releases) has a zip too.
+1. Download [partway-macos-arm64.dmg](../../releases/latest/download/partway-macos-arm64.dmg), open it and drag partway to Applications. [Releases](../../releases) has a zip too.
 2. It is not notarized yet, so macOS blocks the first open. Go to System Settings → Privacy & Security → **Open Anyway**.
 3. A pill floats at the top of the screen. Press **⌥Space** (or its ▶ button), paste your Jev API key from [console.typesafe.ai](https://console.typesafe.ai), and allow the Microphone and Speech Recognition.
-4. For typing and ⌘N, turn halfsay on in System Settings → Privacy & Security → Accessibility.
+4. For typing and ⌘N, turn partway on in System Settings → Privacy & Security → Accessibility.
 
 Apple Silicon, built for macOS 14 and later, tested on macOS 26 (where the bar is Liquid Glass). ⌥Space or ⏸ pauses; the mic is off while paused. Drag the bar anywhere.
 
@@ -63,7 +63,7 @@ Chain them in one breath: "abre o terminal e digita ls". It listens in your Mac'
 
 ## Privacy
 
-Speech becomes text on your Mac with Apple's recognizer (on-device when your language supports it). Only the words go to Jev. `--log` keeps a local trace in `~/Library/Logs/halfsay/`, off by default: it holds everything the mic hears. What it can type, where the key lives and how to report a problem: [SECURITY.md](SECURITY.md).
+Speech becomes text on your Mac with Apple's recognizer (on-device when your language supports it). Only the words go to Jev. `--log` keeps a local trace in `~/Library/Logs/partway/`, off by default: it holds everything the mic hears. What it can type, where the key lives and how to report a problem: [SECURITY.md](SECURITY.md).
 
 ## Limitations
 
@@ -74,13 +74,13 @@ Speech becomes text on your Mac with Apple's recognizer (on-device when your lan
 ## Build from source
 
 ```sh
-echo 'TYPESAFE_API_KEY=...' > .env && make key   # the app reads ~/.config/halfsay/api-key
+echo 'TYPESAFE_API_KEY=...' > .env && make key   # the app reads ~/.config/partway/api-key
 make test                                        # Swift Testing; the Makefile finds it with only the Command Line Tools
-make app && open build/halfsay.app --args --dry-run --log
-swift run halfsay --text "abre o safari e pesquisa receita de pão de queijo" --dry-run   # no mic
+make app && open build/partway.app --args --dry-run --log
+swift run partway --text "abre o safari e pesquisa receita de pão de queijo" --dry-run   # no mic
 ```
 
-The decision logic lives in `HalfsayCore` and is tested offline; `Sources/halfsay` is glue over Apple APIs. Notes for coding agents: [AGENTS.md](AGENTS.md). A `v*` tag tests, builds and publishes a release with a dmg and a zip.
+The decision logic lives in `PartwayCore` and is tested offline; `Sources/partway` is glue over Apple APIs. Notes for coding agents: [AGENTS.md](AGENTS.md). A `v*` tag tests, builds and publishes a release with a dmg and a zip.
 
 ## Contributing
 

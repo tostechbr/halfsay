@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import HalfsayCore
+@testable import PartwayCore
 
 let fixture = Data("""
 {"model":"jev-1.13.0","answers":{

@@ -3,11 +3,11 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleIdentifier</key>
-    <string>dev.tostechbr.halfsay</string>
+    <string>dev.tostechbr.partway</string>
     <key>CFBundleName</key>
-    <string>halfsay</string>
+    <string>partway</string>
     <key>CFBundleExecutable</key>
-    <string>halfsay</string>
+    <string>partway</string>
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
     <key>CFBundlePackageType</key>
@@ -23,8 +23,8 @@
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>NSMicrophoneUsageDescription</key>
-    <string>halfsay listens for your voice commands.</string>
+    <string>partway listens for your voice commands.</string>
     <key>NSSpeechRecognitionUsageDescription</key>
-    <string>halfsay turns your speech into text to understand commands.</string>
+    <string>partway turns your speech into text to understand commands.</string>
 </dict>
 </plist>

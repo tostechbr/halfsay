@@ -26,7 +26,7 @@ public enum InstalledApps {
 
 extension InstalledApps {
     /// Other names an app is spoken by: its name in each of your languages ("Notes" is "Notas" in Portuguese).
-    /// Asked language by language because halfsay ships no translations, so Finder's lookup answers it in English.
+    /// Asked language by language because partway ships no translations, so Finder's lookup answers it in English.
     public static func aliases(for apps: [String: URL], languages: [String] = Locale.preferredLanguages) -> [String: [String]] {
         apps.reduce(into: [:]) { result, app in
             result[app.key] = spokenNames(of: app.value, in: languages).reduce(into: [app.key]) { names, name in

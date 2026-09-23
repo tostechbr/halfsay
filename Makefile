@@ -3,7 +3,7 @@ CLT := /Library/Developer/CommandLineTools/Library/Developer
 ifeq ($(shell xcode-select -p),/Library/Developer/CommandLineTools)
 TEST_FLAGS := -Xswiftc -F -Xswiftc $(CLT)/Frameworks -Xlinker -rpath -Xlinker $(CLT)/Frameworks -Xlinker -rpath -Xlinker $(CLT)/usr/lib
 endif
-APP := build/halfsay.app
+APP := build/partway.app
 
 test:
 	swift test $(TEST_FLAGS) $(ARGS)
@@ -11,12 +11,12 @@ test:
 # A real .app gets its own Microphone, Speech and Accessibility permissions instead of borrowing your terminal's.
 # Ad-hoc signed: macOS may ask for them again after a rebuild.
 app:
-	swift build -c release --product halfsay
+	swift build -c release --product partway
 	rm -rf $(APP)
 	mkdir -p $(APP)/Contents/MacOS $(APP)/Contents/Resources
-	cp .build/release/halfsay $(APP)/Contents/MacOS/halfsay
-	cp Sources/halfsay/Info.plist $(APP)/Contents/Info.plist
-	cp Sources/halfsay/AppIcon.icns $(APP)/Contents/Resources/AppIcon.icns
+	cp .build/release/partway $(APP)/Contents/MacOS/partway
+	cp Sources/partway/Info.plist $(APP)/Contents/Info.plist
+	cp Sources/partway/AppIcon.icns $(APP)/Contents/Resources/AppIcon.icns
 	codesign --force --sign - $(APP)
 	@echo "built $(APP): open it, then press ⌥Space"
 
@@ -30,15 +30,15 @@ icon:
 		sips -z $$size $$size build/icon-1024.png --out build/AppIcon.iconset/icon_$${size}x$${size}.png >/dev/null; \
 		sips -z $$((size * 2)) $$((size * 2)) build/icon-1024.png --out build/AppIcon.iconset/icon_$${size}x$${size}@2x.png >/dev/null; \
 	done
-	iconutil -c icns build/AppIcon.iconset -o Sources/halfsay/AppIcon.icns
+	iconutil -c icns build/AppIcon.iconset -o Sources/partway/AppIcon.icns
 	sips -z 256 256 build/icon-1024.png --out docs/icon.png >/dev/null
 
 # An app opened from Finder gets no shell environment, so the key lives in a private file.
 key:
 	@test -f .env || { echo "no .env here with TYPESAFE_API_KEY=..."; exit 1; }
-	@mkdir -p ~/.config/halfsay
-	@sed -n -e 's/^export TYPESAFE_API_KEY=//p' -e 's/^TYPESAFE_API_KEY=//p' .env | head -1 > ~/.config/halfsay/api-key
-	@chmod 600 ~/.config/halfsay/api-key
-	@test -s ~/.config/halfsay/api-key && echo "key saved to ~/.config/halfsay/api-key"
+	@mkdir -p ~/.config/partway
+	@sed -n -e 's/^export TYPESAFE_API_KEY=//p' -e 's/^TYPESAFE_API_KEY=//p' .env | head -1 > ~/.config/partway/api-key
+	@chmod 600 ~/.config/partway/api-key
+	@test -s ~/.config/partway/api-key && echo "key saved to ~/.config/partway/api-key"
 
 .PHONY: test app icon key

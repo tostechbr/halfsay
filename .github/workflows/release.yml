@@ -1,6 +1,6 @@
 name: release
 
-# A v* tag tests, builds halfsay.app on a macOS runner and publishes the release: a dmg to drag into Applications,
+# A v* tag tests, builds partway.app on a macOS runner and publishes the release: a dmg to drag into Applications,
 # the same app zipped, and notes grouped by commit type. A manual run only builds them and keeps them as an artifact.
 # Not notarized yet: that needs an Apple Developer ID (see the Prometeu workflow for the signing secrets it takes).
 on:
@@ -29,17 +29,17 @@ jobs:
 
       - name: Take the version from the tag
         if: startsWith(github.ref, 'refs/tags/v')
-        run: plutil -replace CFBundleShortVersionString -string "${GITHUB_REF_NAME#v}" Sources/halfsay/Info.plist
+        run: plutil -replace CFBundleShortVersionString -string "${GITHUB_REF_NAME#v}" Sources/partway/Info.plist
 
       - name: Build the app
         run: make app
 
-      # Fixed names, so the README can link releases/latest/download/halfsay-macos-arm64.dmg.
+      # Fixed names, so the README can link releases/latest/download/partway-macos-arm64.dmg.
       - name: Pack a dmg and a zip
         run: |
-          mkdir dmg && ditto build/halfsay.app dmg/halfsay.app && ln -s /Applications dmg/Applications
-          hdiutil create -volname halfsay -srcfolder dmg -format UDZO halfsay-macos-arm64.dmg
-          ditto -c -k --keepParent build/halfsay.app halfsay-macos-arm64.zip
+          mkdir dmg && ditto build/partway.app dmg/partway.app && ln -s /Applications dmg/Applications
+          hdiutil create -volname partway -srcfolder dmg -format UDZO partway-macos-arm64.dmg
+          ditto -c -k --keepParent build/partway.app partway-macos-arm64.zip
 
       - name: Publish the release
         if: startsWith(github.ref, 'refs/tags/v')
@@ -47,12 +47,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           .github/release-notes.sh "$GITHUB_REF_NAME" > notes.md
-          gh release create "$GITHUB_REF_NAME" halfsay-macos-arm64.dmg halfsay-macos-arm64.zip \
+          gh release create "$GITHUB_REF_NAME" partway-macos-arm64.dmg partway-macos-arm64.zip \
             --title "${GITHUB_REF_NAME#v}" --notes-file notes.md
 
       - name: Keep them (manual runs)
         if: "!startsWith(github.ref, 'refs/tags/v')"
         uses: actions/upload-artifact@v4
         with:
-          name: halfsay-macos-arm64
-          path: halfsay-macos-arm64.*
+          name: partway-macos-arm64
+          path: partway-macos-arm64.*

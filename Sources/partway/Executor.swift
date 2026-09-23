@@ -1,8 +1,8 @@
 import AppKit
 import ApplicationServices
-import HalfsayCore
+import PartwayCore
 
-/// Runs commands on this Mac. Typing and ⌘N need Accessibility access for the app running halfsay.
+/// Runs commands on this Mac. Typing and ⌘N need Accessibility access for the app running partway.
 @MainActor
 struct Executor {
     // Calibration knob: time for a new note or document to take keyboard focus after ⌘N.
@@ -19,7 +19,7 @@ struct Executor {
         var description: String {
             switch self {
             case .unknownApp(let name): "no installed app named \(name)"
-            case .needsAccessibility: "ℹ︎ Typing and ⌘N need Accessibility access for the app running halfsay (your terminal): System Settings → Privacy & Security → Accessibility. Opening apps and sites works without it."
+            case .needsAccessibility: "ℹ︎ Typing and ⌘N need Accessibility access for the app running partway (your terminal): System Settings → Privacy & Security → Accessibility. Opening apps and sites works without it."
             case .keyboard: "could not create a keyboard event"
             }
         }

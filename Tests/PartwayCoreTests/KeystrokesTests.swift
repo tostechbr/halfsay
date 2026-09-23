@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import HalfsayCore
+@testable import PartwayCore
 
 @Suite struct KeystrokesTests {
     @Test func shortTextIsOneChunk() {

@@ -23,5 +23,5 @@ section Fixes fix
 section Docs docs
 section Other refactor perf test build ci chore
 if [ -n "$previous" ]; then
-  printf '**Full changelog**: https://github.com/%s/compare/%s...%s\n' "${GITHUB_REPOSITORY:-tostechbr/halfsay}" "$previous" "$tag"
+  printf '**Full changelog**: https://github.com/%s/compare/%s...%s\n' "${GITHUB_REPOSITORY:-tostechbr/partway}" "$previous" "$tag"
 fi

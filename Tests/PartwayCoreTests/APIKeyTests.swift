@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import HalfsayCore
+@testable import PartwayCore
 
 @Suite struct APIKeyTests {
     let file = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
@@ -22,7 +22,7 @@ import Testing
     }
 
     @Test func savedKeyLoadsBackAndStaysPrivate() throws {
-        let nested = file.appendingPathComponent("halfsay/api-key")
+        let nested = file.appendingPathComponent("partway/api-key")
         defer { try? FileManager.default.removeItem(at: file) }
         try APIKey.save("  pasted-key \n", to: nested)
         #expect(APIKey.load(environment: [:], file: nested) == "pasted-key")

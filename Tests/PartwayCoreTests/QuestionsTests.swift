@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import HalfsayCore
+@testable import PartwayCore
 
 private func json(_ body: JevBody) throws -> [String: Any] {
     try #require(JSONSerialization.jsonObject(with: JevClient.encoder.encode(body)) as? [String: Any])
