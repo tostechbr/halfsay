@@ -1,6 +1,17 @@
-# halfsay
+<p align="center">
+  <img src="docs/icon.png" width="128" height="128" alt="halfsay icon: a speech bubble, half said and half only dashed">
+</p>
 
-Voice control for macOS that acts on half a sentence. Say "abre as notas e digita bom dia" and Notes is already open while you are still saying "digita".
+<h1 align="center">halfsay</h1>
+
+<p align="center">Voice control for macOS that acts on half a sentence.</p>
+
+<p align="center">
+  <a href="../../releases/latest"><img alt="Download for macOS 14+" src="https://img.shields.io/badge/download-macOS_14%2B-1d1d1f"></a>
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-3f7d20"></a>
+</p>
+
+Say "abre as notas e digita bom dia" and Notes is already open while you are still saying "digita".
 
 It asks [Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev), TypeSafe's System One model, about every word you say. Jev answers with typed decisions and probabilities, not text, in about 200 ms, so the app can act mid-sentence and wait only when it has to.
 
