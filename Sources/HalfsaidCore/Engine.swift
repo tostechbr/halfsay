@@ -151,15 +151,31 @@ public struct Engine: Sendable {
     /// their argument ("search cake recipes | and open notes").
     static func wordsUsed(by command: Command, argument: String?, aliases: [String], in tail: [String]) -> Int {
         let words = tail.map(Vocabulary.normalized)
-        switch command {
-        case .openApp:
-            return mention(of: aliases, in: words) ?? tail.count
-        case .newItem:
-            return tail.count  // ponytail: no span for "a new note", so a command said in the same breath after it is lost
-        case .openURL, .webSearch, .typeText:
-            let span = argument.map { $0.split(separator: " ").map(Vocabulary.normalized) } ?? []
-            return end(of: span, in: words) ?? tail.count
+        let own: Int? = switch command {
+        case .openApp: mention(of: aliases, in: words)
+        case .newItem: nil  // ponytail: no span for "a new note", so a command said in the same breath after it is lost
+        case .openURL, .webSearch, .typeText: end(of: argument.map { $0.split(separator: " ").map(Vocabulary.normalized) } ?? [], in: words)
         }
+        guard let own else { return tail.count }
+        return modifierEnd(from: own, in: words)
+    }
+
+    /// "abre o linkedin | no google por favor": what follows a command and only says how, where or please belongs to it,
+    /// so it never becomes a command of its own. Stops at a connective ("e", "and") or another command's verb.
+    private static func modifierEnd(from start: Int, in words: [String]) -> Int {
+        var end = start
+        var inModifier = false
+        while end < words.count {
+            let word = words[end]
+            if Vocabulary.connectives.contains(word) || Vocabulary.commandVerbs.contains(word) { break }
+            if Vocabulary.modifierOpeners.contains(word) {
+                inModifier = true
+            } else if !inModifier && !Vocabulary.filler.contains(word) {
+                break
+            }
+            end += 1
+        }
+        return end
     }
 
     /// Where the earliest full name ends, else the earliest first word ("google" for Google Chrome), plus a trailing "app".

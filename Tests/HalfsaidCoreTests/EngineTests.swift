@@ -112,6 +112,15 @@ private func decision(_ action: Action, _ confidence: Double = 1, app: String? =
         #expect(engine.pause().command == .webSearch("receita de bolo"))
     }
 
+    @Test func howOrWhereBelongsToTheCommand() {
+        #expect(Engine.wordsUsed(by: .openURL(URL(string: "https://linkedin.com")!), argument: "LinkedIn", aliases: [],
+                                 in: ["abre", "o", "LinkedIn", "no", "Google", "por", "favor"]) == 7)
+        #expect(Engine.wordsUsed(by: .openApp("Notes"), argument: nil, aliases: ["Notes"],
+                                 in: ["open", "the", "notes", "app", "for", "me", "and", "type", "hi"]) == 6)
+        #expect(Engine.wordsUsed(by: .openApp("Terminal"), argument: nil, aliases: ["Terminal"],
+                                 in: ["abre", "o", "terminal", "no", "mac", "digita", "ls"]) == 5)
+    }
+
     @Test func differentOutcomesDoNotAddUp() {
         var engine = Engine()
         let split = Decision(action: .typeText, confidence: 0.4,
@@ -208,7 +217,7 @@ private func decision(_ action: Action, _ confidence: Double = 1, app: String? =
 
     @Test func accentsDoNotHideTheApp() {
         #expect(Engine.wordsUsed(by: .openApp("Calendar"), argument: nil, aliases: ["Calendar", "Calendário"],
-                                 in: ["abre", "o", "calendario", "agora"]) == 3)
+                                 in: ["abre", "o", "calendario", "agora"]) == 4)  // "agora" belongs to the command
     }
 
     @Test func unknownAppMentionUsesTheWholeTail() {

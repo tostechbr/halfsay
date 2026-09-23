@@ -17,6 +17,8 @@ enum Vocabulary {
     /// ...nor ends on a dangling one ("receita de |"). Not "com": "x dot com".
     static let prepositions: Set<String> = ["de", "do", "da", "dos", "das", "of", "to", "para", "pra", "em", "no", "na", "nos", "nas", "for", "in", "on", "at"]
     static let siteWords: Set<String> = ["site", "website", "page", "pagina", "link"]
+    /// Open a phrase that only says how or where ("no Google", "pelo Chrome", "with Safari").
+    static let modifierOpeners: Set<String> = ["pelo", "pela", "pelos", "pelas", "no", "na", "nos", "nas", "em", "com", "via", "usando", "using", "with", "in", "on", "through", "by"]
     /// Said right after an app's name ("the notes app"): part of the mention.
     static let appWords: Set<String> = ["app", "application", "aplicativo", "programa"]
 
