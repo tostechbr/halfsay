@@ -51,6 +51,7 @@ let demo = [
     Sentence(frontmost: "Finder", text: "abre as notas e digita comprar pão de queijo", expect: ["open Notes", "type “comprar pão de queijo”"]),
     Sentence(frontmost: "Finder", text: "abre o notes escreve lista de compras", expect: ["open Notes", "type “lista de compras”"]),
     Sentence(frontmost: "Finder", text: "entra no site do youtube", expect: ["open https://youtube.com"]),
+    Sentence(frontmost: "Terminal", text: "abre o linkedin pelo google", expect: ["open https://linkedin.com"]),
 ]
 
 struct Sentence: Sendable {
