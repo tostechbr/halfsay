@@ -1,4 +1,4 @@
-import HalfsaidCore
+import HalfsayCore
 import SwiftUI
 
 /// The pill (what it hears) and, while you talk, Jev's read below it: the three likeliest actions,

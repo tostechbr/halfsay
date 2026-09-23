@@ -3,20 +3,20 @@ import Foundation
 import PackageDescription
 
 // The mic and speech recognition refuse to run without usage strings, so the CLI embeds an Info.plist.
-let infoPlist = URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent("Sources/halfsaid/Info.plist").path
+let infoPlist = URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent("Sources/halfsay/Info.plist").path
 
 let package = Package(
-    name: "halfsaid",
+    name: "halfsay",
     platforms: [.macOS(.v14)],
     targets: [
-        .target(name: "HalfsaidCore"),
+        .target(name: "HalfsayCore"),
         .executableTarget(
-            name: "halfsaid",
-            dependencies: ["HalfsaidCore"],
+            name: "halfsay",
+            dependencies: ["HalfsayCore"],
             exclude: ["Info.plist"],
             linkerSettings: [.unsafeFlags(["-Xlinker", "-sectcreate", "-Xlinker", "__TEXT", "-Xlinker", "__info_plist", "-Xlinker", infoPlist])]
         ),
-        .executableTarget(name: "jev-probe", dependencies: ["HalfsaidCore"]),
-        .testTarget(name: "HalfsaidCoreTests", dependencies: ["HalfsaidCore"]),
+        .executableTarget(name: "jev-probe", dependencies: ["HalfsayCore"]),
+        .testTarget(name: "HalfsayCoreTests", dependencies: ["HalfsayCore"]),
     ]
 )

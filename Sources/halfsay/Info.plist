@@ -3,11 +3,11 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleIdentifier</key>
-    <string>dev.tostechbr.halfsaid</string>
+    <string>dev.tostechbr.halfsay</string>
     <key>CFBundleName</key>
-    <string>halfsaid</string>
+    <string>halfsay</string>
     <key>CFBundleExecutable</key>
-    <string>halfsaid</string>
+    <string>halfsay</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
@@ -21,8 +21,8 @@
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>NSMicrophoneUsageDescription</key>
-    <string>halfsaid listens for your voice commands.</string>
+    <string>halfsay listens for your voice commands.</string>
     <key>NSSpeechRecognitionUsageDescription</key>
-    <string>halfsaid turns your speech into text to understand commands.</string>
+    <string>halfsay turns your speech into text to understand commands.</string>
 </dict>
 </plist>

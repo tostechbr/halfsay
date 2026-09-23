@@ -1,6 +1,6 @@
 import AppKit
 import ApplicationServices
-import HalfsaidCore
+import HalfsayCore
 
 /// The menu bar app: the floating bar, ⌥Space to start or stop listening, and a menu to quit.
 @MainActor
@@ -53,7 +53,7 @@ final class AppController: NSObject, NSApplicationDelegate {
         NSApp.activate()  // the panel never takes focus, so the dialog brings the app forward to accept typing
         let alert = NSAlert()
         alert.messageText = "Paste your Jev API key"
-        alert.informativeText = "Get one at console.typesafe.ai. It is saved only on this Mac, readable only by you, in ~/.config/halfsaid/api-key."
+        alert.informativeText = "Get one at console.typesafe.ai. It is saved only on this Mac, readable only by you, in ~/.config/halfsay/api-key."
         let field = NSSecureTextField(frame: NSRect(x: 0, y: 0, width: 320, height: 24))
         alert.accessoryView = field
         alert.addButton(withTitle: "Save")
@@ -82,7 +82,7 @@ final class AppController: NSObject, NSApplicationDelegate {
         if !hasKey { promptForKey() }
         guard hasKey else { return }
         guard await Listener.authorize() else {
-            model.notice = "halfsaid needs Microphone and Speech Recognition: System Settings → Privacy & Security."
+            model.notice = "halfsay needs Microphone and Speech Recognition: System Settings → Privacy & Security."
             return
         }
         if listener == nil {
@@ -122,16 +122,16 @@ final class AppController: NSObject, NSApplicationDelegate {
         showState()
     }
 
-    /// The menu bar icon and menu say whether halfsaid is listening.
+    /// The menu bar icon and menu say whether halfsay is listening.
     private func showState() {
         statusItem?.button?.image = NSImage(systemSymbolName: listening ? "mic.fill" : "mic.slash",
-                                            accessibilityDescription: listening ? "halfsaid is listening" : "halfsaid is paused")
+                                            accessibilityDescription: listening ? "halfsay is listening" : "halfsay is paused")
         toggleItem?.title = listening ? "Pause listening (⌥Space)" : "Start listening (⌥Space)"
     }
 
     private func makeStatusItem() -> NSStatusItem {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        item.button?.image = NSImage(systemSymbolName: "waveform", accessibilityDescription: "halfsaid")
+        item.button?.image = NSImage(systemSymbolName: "waveform", accessibilityDescription: "halfsay")
         let menu = NSMenu()
         let toggleItem = NSMenuItem(title: "Start listening (⌥Space)", action: #selector(toggle), keyEquivalent: "")
         toggleItem.target = self
@@ -141,7 +141,7 @@ final class AppController: NSObject, NSApplicationDelegate {
         keyItem.target = self
         menu.addItem(keyItem)
         menu.addItem(.separator())
-        menu.addItem(NSMenuItem(title: "Quit halfsaid", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: "Quit halfsay", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         item.menu = menu
         return item
     }

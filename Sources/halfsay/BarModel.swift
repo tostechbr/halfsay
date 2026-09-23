@@ -1,5 +1,5 @@
 import Combine
-import HalfsaidCore
+import HalfsayCore
 
 /// What the floating bar shows. Session writes it, BarView draws it.
 @MainActor

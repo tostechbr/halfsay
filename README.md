@@ -1,4 +1,4 @@
-# halfsaid
+# halfsay
 
 Voice control for macOS that acts on half a sentence. Say "abre as notas e digita bom dia" and Notes is already open while you are still saying "digita".
 
@@ -6,10 +6,10 @@ It asks [Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev), T
 
 ## Install
 
-1. Download `halfsaid-…-macos-arm64.zip` from [Releases](../../releases), unzip it and move `halfsaid.app` to Applications.
+1. Download `halfsay-…-macos-arm64.zip` from [Releases](../../releases), unzip it and move `halfsay.app` to Applications.
 2. It is not notarized yet, so macOS blocks the first open. Go to System Settings → Privacy & Security → **Open Anyway**.
 3. A pill floats at the top of the screen. Press **⌥Space** (or its ▶ button), paste your Jev API key from [console.typesafe.ai](https://console.typesafe.ai), and allow the Microphone and Speech Recognition.
-4. For typing and ⌘N, turn halfsaid on in System Settings → Privacy & Security → Accessibility.
+4. For typing and ⌘N, turn halfsay on in System Settings → Privacy & Security → Accessibility.
 
 Apple Silicon, built for macOS 14 and later, tested on macOS 26 (where the bar is Liquid Glass). ⌥Space or ⏸ pauses; the mic is off while paused. Drag the bar anywhere.
 
@@ -42,7 +42,7 @@ Chain them in one breath: "abre o terminal e digita ls". It listens in your Mac'
 
 ## Privacy
 
-Speech becomes text on your Mac with Apple's recognizer (on-device when your language supports it). Only the words go to Jev. `--log` keeps a local trace in `~/Library/Logs/halfsaid/`, off by default: it holds everything the mic hears.
+Speech becomes text on your Mac with Apple's recognizer (on-device when your language supports it). Only the words go to Jev. `--log` keeps a local trace in `~/Library/Logs/halfsay/`, off by default: it holds everything the mic hears.
 
 ## Limitations
 
@@ -53,13 +53,13 @@ Speech becomes text on your Mac with Apple's recognizer (on-device when your lan
 ## Develop
 
 ```sh
-echo 'TYPESAFE_API_KEY=...' > .env && make key   # the app reads ~/.config/halfsaid/api-key
+echo 'TYPESAFE_API_KEY=...' > .env && make key   # the app reads ~/.config/halfsay/api-key
 make test                                        # Swift Testing; the Makefile finds it with only the Command Line Tools
-make app && open build/halfsaid.app --args --dry-run --log
-swift run halfsaid --text "abre o safari e pesquisa receita de pão de queijo" --dry-run   # no mic
+make app && open build/halfsay.app --args --dry-run --log
+swift run halfsay --text "abre o safari e pesquisa receita de pão de queijo" --dry-run   # no mic
 ```
 
-The decision logic lives in `HalfsaidCore` and is tested offline; `Sources/halfsaid` is glue over Apple APIs. Notes for coding agents: [AGENTS.md](AGENTS.md). A `v*` tag builds the release zip.
+The decision logic lives in `HalfsayCore` and is tested offline; `Sources/halfsay` is glue over Apple APIs. Notes for coding agents: [AGENTS.md](AGENTS.md). A `v*` tag builds the release zip.
 
 ## Credits
 

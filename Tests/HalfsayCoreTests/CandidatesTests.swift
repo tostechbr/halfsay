@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import HalfsaidCore
+@testable import HalfsayCore
 
 @Suite struct CandidatesTests {
     @Test func everyContiguousSpanIsACandidate() {

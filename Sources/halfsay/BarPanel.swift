@@ -6,7 +6,7 @@ import SwiftUI
 final class BarPanel: NSPanel {
     /// Room around the bar for its SwiftUI shadow.
     static let margin: CGFloat = 16
-    private static let autosave = "halfsaid.bar"
+    private static let autosave = "halfsay.bar"
 
     private var changes: AnyCancellable?
 

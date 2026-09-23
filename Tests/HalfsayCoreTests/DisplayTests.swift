@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import HalfsaidCore
+@testable import HalfsayCore
 
 @Suite struct DisplayTests {
     @Test func actionsHaveShortLabels() {
@@ -54,7 +54,7 @@ import Testing
     }
 
     @Test func savedKeyLoadsBackAndStaysPrivate() throws {
-        let nested = file.appendingPathComponent("halfsaid/api-key")
+        let nested = file.appendingPathComponent("halfsay/api-key")
         defer { try? FileManager.default.removeItem(at: file) }
         try APIKey.save("  pasted-key \n", to: nested)
         #expect(APIKey.load(environment: [:], file: nested) == "pasted-key")

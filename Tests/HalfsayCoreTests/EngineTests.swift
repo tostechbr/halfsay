@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import HalfsaidCore
+@testable import HalfsayCore
 
 private func decision(_ action: Action, _ confidence: Double = 1, app: String? = nil, appP: Double = 1, arg: String? = nil,
                       opensApp: Double = 0) -> Decision {

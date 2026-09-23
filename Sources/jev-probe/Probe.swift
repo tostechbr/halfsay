@@ -1,6 +1,6 @@
 import AppKit
 import Foundation
-import HalfsaidCore
+import HalfsayCore
 
 /// Replays sentences word by word as if they were live speech-recognition partials, through the same
 /// Engine and questions the app uses, and prints where each command fires.

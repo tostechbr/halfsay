@@ -1,16 +1,16 @@
 import AppKit
 import ApplicationServices
 import Foundation
-import HalfsaidCore
+import HalfsayCore
 
-@main @MainActor struct Halfsaid {
+@main @MainActor struct Halfsay {
     static let usage = """
-    usage: halfsaid [--text "sentence"] [--dry-run] [--log] [--locale en-US] [--wpm 160]
+    usage: halfsay [--text "sentence"] [--dry-run] [--log] [--locale en-US] [--wpm 160]
 
       (no --text)  menu bar app: floating bar, ⌥Space to start or stop listening
       --text       feed a sentence at speaking pace instead of the mic (terminal only)
       --dry-run    print commands instead of running them
-      --log        keep a local trace in ~/Library/Logs/halfsaid (everything the mic hears)
+      --log        keep a local trace in ~/Library/Logs/halfsay (everything the mic hears)
       --locale     speech language, e.g. en-US (default: this Mac's language)
       --wpm        speaking pace for --text, in words per minute
     """
