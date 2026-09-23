@@ -119,10 +119,21 @@ public struct Engine: Sendable {
     private func onPause(_ d: Decision) -> Command? {
         let scored = outcomes(for: d).map { outcome in (outcome: outcome, chance: outcome.reduce(0) { $0 + d.probability(of: $1) }) }
         guard let best = scored.max(by: { $0.chance < $1.chance }), best.chance >= pauseThreshold else { return nil }
-        for action in best.outcome.sorted(by: { d.probability(of: $0) > d.probability(of: $1) }) {
+        for action in order(best.outcome, d) {
             if let command = command(for: action, d) { return command }  // a "site" that is no address falls back to search
         }
         return nil
+    }
+
+    /// Likeliest first. A browser that joined the web outcome only lends its chance: the site or search named wins
+    /// ("abre o linkedin no google" → linkedin.com), unless the argument is the browser itself ("abre o google").
+    private func order(_ outcome: [Action], _ d: Decision) -> [Action] {
+        let ranked = outcome.sorted { d.probability(of: $0) > d.probability(of: $1) }
+        guard outcome.contains(.webSearch), outcome.contains(.openApp), let app = d.app else { return ranked }
+        let browserWords = Set(([app] + (appAliases[app] ?? [])).flatMap { $0.split(separator: " ").map(Vocabulary.normalized) })
+        let argumentWords = (d.argument ?? "").split(separator: " ").map(Vocabulary.normalized)
+        let web = ranked.filter { $0 != .openApp }
+        return argumentWords.allSatisfy(browserWords.contains) ? [.openApp] + web : web + [.openApp]
     }
 
     private func command(for action: Action, _ d: Decision) -> Command? {

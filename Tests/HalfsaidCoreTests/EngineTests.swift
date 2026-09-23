@@ -131,6 +131,25 @@ private func decision(_ action: Action, _ confidence: Double = 1, app: String? =
         #expect(engine.pause().command == .openURL(URL(string: "https://linkedin.com")!))
     }
 
+    @Test func theSiteBeatsJustOpeningTheBrowser() {
+        var engine = Engine()
+        engine.browsers = ["Google Chrome"]
+        let split = Decision(action: .openApp, confidence: 0.4,
+                             actionProbabilities: [.openApp: 0.45, .openURL: 0.35, .webSearch: 0.1, .none: 0.1],
+                             app: "Google Chrome", appProbability: 0.8, argument: "LinkedIn")
+        _ = engine.receive(split, for: engine.hear("abre o linkedin no google por favor")!)
+        #expect(engine.pause().command == .openURL(URL(string: "https://linkedin.com")!))
+    }
+
+    @Test func namingOnlyTheBrowserOpensIt() {
+        var engine = Engine()
+        engine.browsers = ["Google Chrome"]
+        let decision = Decision(action: .openApp, confidence: 0.6, actionProbabilities: [.openApp: 0.6, .openURL: 0.3, .none: 0.1],
+                                app: "Google Chrome", appProbability: 0.8, argument: "google")
+        _ = engine.receive(decision, for: engine.hear("abre o google")!)
+        #expect(engine.pause().command == .openApp("Google Chrome"))
+    }
+
     @Test func differentOutcomesDoNotAddUp() {
         var engine = Engine()
         let split = Decision(action: .typeText, confidence: 0.4,
