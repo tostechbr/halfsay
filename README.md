@@ -1,55 +1,68 @@
 # halfsaid
 
-Voice control for macOS that acts on half a sentence. Say "can you open up the notes app for me and…" and Notes is open before you finish.
+Voice control for macOS that acts on half a sentence. Say "abre as notas e digita bom dia" and Notes is already open while you are still saying "digita".
 
-It asks [Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) (TypeSafe's System One model) about every word you say. Jev returns typed decisions with probabilities, not text, in ~200 ms, so code can act mid-sentence.
+It asks [Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev), TypeSafe's System One model, about every word you say. Jev answers with typed decisions and probabilities, not text, in about 200 ms, so the app can act mid-sentence and wait only when it has to.
 
-> **Status: v0 in progress.** Engine, probe, microphone, actions and the floating bar work. A demo GIF is next.
+## Install
 
-## Run it
+1. Download `halfsaid-…-macos-arm64.zip` from [Releases](../../releases), unzip it and move `halfsaid.app` to Applications.
+2. It is not notarized yet, so macOS blocks the first open. Go to System Settings → Privacy & Security → **Open Anyway**.
+3. A pill floats at the top of the screen. Press **⌥Space** (or its ▶ button), paste your Jev API key from [console.typesafe.ai](https://console.typesafe.ai), and allow the Microphone and Speech Recognition.
+4. For typing and ⌘N, turn halfsaid on in System Settings → Privacy & Security → Accessibility.
 
-```sh
-echo 'TYPESAFE_API_KEY=...' > .env   # https://console.typesafe.ai
-make key                             # copies it to ~/.config/halfsaid/api-key (an app opened from Finder has no shell env)
-make app && open build/halfsaid.app  # a bar floats at the top: press ⌥Space and talk
-open build/halfsaid.app --args --dry-run --log   # show what it would do, keep a local trace
-swift run halfsaid --text "open safari and search the weather in lisbon" --dry-run   # no mic: words fed at 160 wpm
-```
+Apple Silicon, built for macOS 14 and later, tested on macOS 26 (where the bar is Liquid Glass). ⌥Space or ⏸ pauses; the mic is off while paused. Drag the bar anywhere.
 
-While you talk the bar shows Jev's read: the three likeliest actions, the yes/no "opens an app?" and each command as it fires. It collapses to a pill when you stop. It never takes focus, so typing lands in the app you are using.
+## What you can say
 
-Apple's recognizer transcribes your speech in your Mac's language (`--locale en-US` to pick another), on this Mac when that language supports it. Only the words go to Jev. The first run asks for Microphone and Speech Recognition access. Typing and ⌘N also need Accessibility for your terminal.
+| Say | It does |
+|---|---|
+| "open the notes app", "abre o Safari" | opens the app, often before you finish the sentence |
+| "create a new note", "cria uma nota nova" | ⌘N in the app in front |
+| "abre o linkedin no google", "open x dot com" | opens the site |
+| "pesquisa receita de pão de queijo", "google search norbert wiener" | searches, in the browser in front |
+| "digita bom dia", "make the title say hello" | types into the app in front |
 
-`--log` keeps a local trace in `~/Library/Logs/halfsaid/`, one JSON line per event (heard, asked, Jev's answer, fired, ran). It records everything the mic hears, side conversations included, and never leaves your Mac. Off by default.
+Chain them in one breath: "abre o terminal e digita ls". It listens in your Mac's language; Portuguese is tested by voice, English with the probe below.
 
 ## How it decides
 
-- **Closed actions** fire mid-sentence once 2 partials in a row agree. Opening an app needs the app named beyond doubt (≥ 0.95) and ≥ 0.8 from the action choice or from a yes/no "does it ask to open an app?". The yes/no holds up when a second command follows ("abre as notas e digita…"), where the single choice splits between two valid actions. A new item needs ≥ 0.85.
-- **Open actions** (search, website, type text) wait for the pause: "search norbert" is not "search norbert wiener" until you stop.
-- **At the pause it acts on the outcome, not the label.** Going to LinkedIn and searching for it both land on LinkedIn, so their probabilities add up; typing and creating a note do not.
-- **Jev never writes text.** Code cuts every span of what you said, Jev picks one, and it is copied verbatim.
-- Firing consumes the words, so the rest of the sentence becomes the next command.
-- Search, website and typing use words only up to their argument, so "search cake recipes and open notes" runs both.
+- Every partial transcript goes to Jev in one request: what to do, which app, which words are the argument, and a yes/no "does it ask to open an app?".
+- **Opening an app fires mid-sentence** once two partials in a row agree and the app is named beyond doubt. A new item needs 0.85.
+- **Search, site and typing wait for the pause**: "search norbert" is not "search norbert wiener" until you stop.
+- **At the pause it acts on the outcome, not the label.** Going to LinkedIn, searching for it, or opening the browser you named all land on LinkedIn, so their probabilities add up; typing and creating a note do not.
+- **Jev never writes text.** Code cuts every span of what you said, Jev picks one, and it is copied verbatim. Spans made of the command itself ("digita", "pesquisar") are never offered.
+- A command ends where its own words end, plus any "how or where" ("no Google", "por favor"), so the rest of the sentence becomes the next command.
 
-## Measured at speaking pace
+## Measured
 
-`--text` at 160 wpm, network included:
+- By voice: Chrome opened **5.6 s** before the end of the sentence, Terminal 5.2 s, Notes 3.0 s.
+- Jev answers in ~205 ms on a warm connection; a fresh TLS handshake alone costs ~440 ms. The API speaks HTTP/2, so the first words of a sentence warm it.
+- `swift run jev-probe` replays 15 sentences word by word against the real API and grades them: **13/15**. The two misses are text that reads like a task ("escreve lista de compras").
 
-| said | fired |
-|---|---|
-| can you open up the notes app for me and once you're there can you create a new note and inside this new note let's make the title say hello | open Notes **8.3 s before the end** · new item 3.5 s before · type “hello” 0.6 s after |
-| can you open up safari and google search norbert wiener | open Safari 1.3 s before · search “norbert wiener” 0.6 s after |
-| abre o safari e pesquisa receita de pão de queijo | open Safari 2.0 s before · search “receita de pão de queijo” 0.6 s after |
-| i was just telling my friend about the notes app | nothing: not a command |
+## Privacy
 
-Open actions land ~0.6 s after you stop. That is the pause they wait for; Jev's answer is already in.
+Speech becomes text on your Mac with Apple's recognizer (on-device when your language supports it). Only the words go to Jev. `--log` keeps a local trace in `~/Library/Logs/halfsaid/`, off by default: it holds everything the mic hears.
 
-## Probe
+## Limitations
 
-`swift run jev-probe` replays sentences word by word and waits for each answer, printing a per-word table of what Jev decided and how few words each command needed ("open Notes after 7/19 words"). Median 302 ms over 68 calls. Keep one connection warm: a fresh TLS handshake alone costs ~440 ms, a warm call ~205 ms.
+- Not notarized, and each build is signed ad hoc, so macOS may ask for the permissions again after an update.
+- It cannot click buttons in other apps: it does not read the screen yet.
+- Text that sounds like a task ("escreve lista de compras") may do nothing, and the waveform is decorative.
 
 ## Develop
 
-`make test` runs `swift test`, adding Swift Testing's path when only the Command Line Tools are installed.
+```sh
+echo 'TYPESAFE_API_KEY=...' > .env && make key   # the app reads ~/.config/halfsaid/api-key
+make test                                        # Swift Testing; the Makefile finds it with only the Command Line Tools
+make app && open build/halfsaid.app --args --dry-run --log
+swift run halfsaid --text "abre o safari e pesquisa receita de pão de queijo" --dry-run   # no mic
+```
+
+The decision logic lives in `HalfsaidCore` and is tested offline; `Sources/halfsaid` is glue over Apple APIs. Notes for coding agents: [AGENTS.md](AGENTS.md). A `v*` tag builds the release zip.
+
+## Credits
+
+Inspired by [Andy Gao's demo](https://x.com/instantricecook/status/2100814590300889426). Earlier Jev voice projects: [jev-voice-browser](https://github.com/moritzkremb/jev-voice-browser) (acts per word, in the browser) and [jev-voice](https://github.com/kevinbadi/jev-voice) (Python, on the Mac). Built on [TypeSafe](https://typesafe.ai)'s Jev.
 
 MIT
