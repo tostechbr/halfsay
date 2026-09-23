@@ -118,6 +118,22 @@ private func decision(_ action: Action, _ confidence: Double = 1, app: String? =
         #expect(engine.receive(decision(.typeText, arg: "hi"), for: followUp).command == .typeText("hi"))
     }
 
+    @Test func openTextKeepsTheCommandChainedAfterIt() throws {
+        var engine = Engine()
+        _ = engine.receive(decision(.webSearch, arg: "cake recipes"), for: engine.hear("search cake recipes and open notes")!)
+        let step = engine.pause()
+        #expect(step.command == .webSearch("cake recipes"))
+        let followUp = try #require(step.request)
+        #expect(followUp.tail == ["and", "open", "notes"])
+        #expect(engine.receive(decision(.openApp, app: "Notes"), for: followUp).command == .openApp("Notes"))
+    }
+
+    @Test func argumentAtTheEndUsesTheWholeTail() {
+        var engine = Engine()
+        _ = engine.receive(decision(.webSearch, arg: "norbert wiener"), for: engine.hear("google norbert wiener")!)
+        #expect(engine.pause().request == nil)
+    }
+
     @Test func lateOlderAnswerIsIgnored() {
         var engine = Engine()
         let r1 = engine.hear("open notes")!

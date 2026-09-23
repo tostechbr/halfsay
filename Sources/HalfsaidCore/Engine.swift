@@ -50,7 +50,7 @@ public struct Engine: Sendable {
     public mutating func pause() -> Step {
         paused = true
         guard let latest, latest.request.seq == seq else { return Step() }  // newest answer still in flight
-        return fire(onPause(latest.decision), consuming: latest.request)
+        return fire(onPause(latest.decision), argument: latest.decision.argument, consuming: latest.request)
     }
 
     /// Jev answered `request`.
@@ -58,7 +58,7 @@ public struct Engine: Sendable {
         guard request.epoch == epoch, request.seq > (latest?.request.seq ?? 0) else { return Step() }  // stale or late
         latest = (request, decision)
         let command = paused && request.seq == seq ? onPause(decision) : onPartial(decision)
-        return fire(command, consuming: request)
+        return fire(command, argument: decision.argument, consuming: request)
     }
 
     /// Speech recognition restarted: a fresh utterance.
@@ -107,13 +107,30 @@ public struct Engine: Sendable {
         }
     }
 
-    private mutating func fire(_ command: Command?, consuming request: Request) -> Step {
+    private mutating func fire(_ command: Command?, argument: String?, consuming request: Request) -> Step {
         guard let command else { return Step() }
-        consumed = request.consumed + request.tail.count
+        consumed = request.consumed + Self.wordsUsed(by: command, argument: argument, in: request.tail)
         epoch += 1
         latest = nil
         streak = nil
         lastTail = []
         return Step(command: command, request: nextRequest())
+    }
+
+    /// Open commands end with their argument, so a command chained after it survives
+    /// ("search cake recipes | and open notes"). Closed commands fire early, while the tail is still just them.
+    static func wordsUsed(by command: Command, argument: String?, in tail: [String]) -> Int {
+        switch command {
+        case .openApp, .newItem:
+            return tail.count
+        case .openURL, .webSearch, .typeText:
+            let span = argument?.split(separator: " ").map(String.init) ?? []
+            let words = tail.map { $0.trimmingCharacters(in: .punctuationCharacters) }
+            guard !span.isEmpty, span.count <= words.count else { return tail.count }
+            for start in 0...(words.count - span.count) where Array(words[start..<start + span.count]) == span {
+                return start + span.count
+            }
+            return tail.count
+        }
     }
 }
