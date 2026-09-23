@@ -106,15 +106,28 @@ public struct Engine: Sendable {
         return count >= stableCount ? candidate : nil
     }
 
+    /// Actions grouped by what ends up on screen: going to a site and searching for it both put it there.
+    static let outcomes: [[Action]] = [[.openURL, .webSearch], [.openApp], [.newItem], [.typeText]]
+
+    /// Acts on the chance of an outcome, not on how concentrated one label is: "abre o LinkedIn no Google" splits
+    /// 0.72 site / 0.15 browser / 0.13 search, so the label's confidence is 0.66 though site or search both get there.
     private func onPause(_ d: Decision) -> Command? {
-        guard d.confidence >= pauseThreshold else { return nil }
-        switch d.action {
-        case .openApp: return d.appProbability >= pauseThreshold ? d.app.map(Command.openApp) : nil
-        case .newItem: return .newItem
-        case .openURL: return d.argument.flatMap(Site.url).map(Command.openURL)
-        case .webSearch: return d.argument.map(Command.webSearch)
-        case .typeText: return d.argument.map(Command.typeText)
-        case .none: return nil
+        let scored = Self.outcomes.map { outcome in (outcome: outcome, chance: outcome.reduce(0) { $0 + d.probability(of: $1) }) }
+        guard let best = scored.max(by: { $0.chance < $1.chance }), best.chance >= pauseThreshold else { return nil }
+        for action in best.outcome.sorted(by: { d.probability(of: $0) > d.probability(of: $1) }) {
+            if let command = command(for: action, d) { return command }  // a "site" that is no address falls back to search
+        }
+        return nil
+    }
+
+    private func command(for action: Action, _ d: Decision) -> Command? {
+        switch action {
+        case .openApp: d.appProbability >= pauseThreshold ? d.app.map(Command.openApp) : nil
+        case .newItem: .newItem
+        case .openURL: d.argument.flatMap(Site.url).map(Command.openURL)
+        case .webSearch: d.argument.map(Command.webSearch)
+        case .typeText: d.argument.map(Command.typeText)
+        case .none: nil
         }
     }
 

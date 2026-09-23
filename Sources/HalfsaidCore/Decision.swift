@@ -25,6 +25,11 @@ public struct Decision: Equatable, Sendable {
         self.opensApp = opensApp
     }
 
+    /// Jev's probability for `action`; a decision built by hand carries only the chosen action's confidence.
+    func probability(of action: Action) -> Double {
+        actionProbabilities[action] ?? (action == self.action ? confidence : 0)
+    }
+
     init(answers: [String: JevAnswer]) throws {
         guard let answer = answers["action"], let choice = answer.choice else { throw JevError.missingAnswer("action") }
         guard let action = Action(rawValue: choice) else { throw JevError.unexpectedAnswer("action", choice) }

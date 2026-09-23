@@ -96,6 +96,30 @@ private func decision(_ action: Action, _ confidence: Double = 1, app: String? =
         #expect(engine.pause().command == nil)
     }
 
+    @Test func sameOutcomeSplitStillFiresAtThePause() {
+        var engine = Engine()
+        let split = Decision(action: .openURL, confidence: 0.66,
+                             actionProbabilities: [.openURL: 0.72, .openApp: 0.15, .webSearch: 0.13], argument: "LinkedIn")
+        _ = engine.receive(split, for: engine.hear("abre o LinkedIn no Google por favor")!)
+        #expect(engine.pause().command == .openURL(URL(string: "https://linkedin.com")!))
+    }
+
+    @Test func aSiteThatIsNotAnAddressBecomesASearch() {
+        var engine = Engine()
+        let split = Decision(action: .openURL, confidence: 0.4,
+                             actionProbabilities: [.openURL: 0.45, .webSearch: 0.35, .none: 0.2], argument: "receita de bolo")
+        _ = engine.receive(split, for: engine.hear("abre receita de bolo")!)
+        #expect(engine.pause().command == .webSearch("receita de bolo"))
+    }
+
+    @Test func differentOutcomesDoNotAddUp() {
+        var engine = Engine()
+        let split = Decision(action: .typeText, confidence: 0.4,
+                             actionProbabilities: [.typeText: 0.45, .newItem: 0.45, .none: 0.1], argument: "lista de compras")
+        _ = engine.receive(split, for: engine.hear("escreve lista de compras")!)
+        #expect(engine.pause().command == nil)
+    }
+
     @Test func pauseFiresAShortClosedCommand() {
         var engine = Engine()
         _ = engine.receive(decision(.openApp, app: "Notes"), for: engine.hear("notes")!)

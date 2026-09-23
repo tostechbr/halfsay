@@ -26,6 +26,7 @@ Apple's recognizer transcribes your speech in your Mac's language (`--locale en-
 
 - **Closed actions** fire mid-sentence once 2 partials in a row agree. Opening an app needs the app named beyond doubt (≥ 0.95) and ≥ 0.8 from the action choice or from a yes/no "does it ask to open an app?". The yes/no holds up when a second command follows ("abre as notas e digita…"), where the single choice splits between two valid actions. A new item needs ≥ 0.85.
 - **Open actions** (search, website, type text) wait for the pause: "search norbert" is not "search norbert wiener" until you stop.
+- **At the pause it acts on the outcome, not the label.** Going to LinkedIn and searching for it both land on LinkedIn, so their probabilities add up; typing and creating a note do not.
 - **Jev never writes text.** Code cuts every span of what you said, Jev picks one, and it is copied verbatim.
 - Firing consumes the words, so the rest of the sentence becomes the next command.
 - Search, website and typing use words only up to their argument, so "search cake recipes and open notes" runs both.
