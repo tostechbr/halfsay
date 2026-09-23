@@ -121,6 +121,16 @@ private func decision(_ action: Action, _ confidence: Double = 1, app: String? =
                                  in: ["abre", "o", "terminal", "no", "mac", "digita", "ls"]) == 5)
     }
 
+    @Test func aNamedBrowserJoinsTheWebOutcome() {
+        var engine = Engine()
+        engine.browsers = ["Google Chrome"]
+        let split = Decision(action: .openURL, confidence: 0.36,
+                             actionProbabilities: [.openURL: 0.45, .openApp: 0.3, .webSearch: 0.15, .none: 0.1],
+                             app: "Google Chrome", appProbability: 0.7, argument: "linkedin")
+        _ = engine.receive(split, for: engine.hear("abre o linkedin pelo google")!)
+        #expect(engine.pause().command == .openURL(URL(string: "https://linkedin.com")!))
+    }
+
     @Test func differentOutcomesDoNotAddUp() {
         var engine = Engine()
         let split = Decision(action: .typeText, confidence: 0.4,

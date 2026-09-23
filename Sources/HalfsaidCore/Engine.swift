@@ -27,6 +27,7 @@ public struct Engine: Sendable {
     public var stableCount: Int
     public private(set) var consumed = 0
     public var appAliases: [String: [String]] = [:]
+    public var browsers: Set<String> = []
 
     private var words: [String] = []
     private var epoch = 0
@@ -106,13 +107,17 @@ public struct Engine: Sendable {
         return count >= stableCount ? candidate : nil
     }
 
-    /// Actions grouped by what ends up on screen: going to a site and searching for it both put it there.
-    static let outcomes: [[Action]] = [[.openURL, .webSearch], [.openApp], [.newItem], [.typeText]]
+    /// Actions grouped by what ends up on screen: going to a site, searching for it, or opening the browser it names.
+    private func outcomes(for d: Decision) -> [[Action]] {
+        let namesBrowser = d.app.map(browsers.contains) ?? false
+        return namesBrowser ? [[.openURL, .webSearch, .openApp], [.newItem], [.typeText]]
+                            : [[.openURL, .webSearch], [.openApp], [.newItem], [.typeText]]
+    }
 
     /// Acts on the chance of an outcome, not on how concentrated one label is: "abre o LinkedIn no Google" splits
     /// 0.72 site / 0.15 browser / 0.13 search, so the label's confidence is 0.66 though site or search both get there.
     private func onPause(_ d: Decision) -> Command? {
-        let scored = Self.outcomes.map { outcome in (outcome: outcome, chance: outcome.reduce(0) { $0 + d.probability(of: $1) }) }
+        let scored = outcomes(for: d).map { outcome in (outcome: outcome, chance: outcome.reduce(0) { $0 + d.probability(of: $1) }) }
         guard let best = scored.max(by: { $0.chance < $1.chance }), best.chance >= pauseThreshold else { return nil }
         for action in best.outcome.sorted(by: { d.probability(of: $0) > d.probability(of: $1) }) {
             if let command = command(for: action, d) { return command }  // a "site" that is no address falls back to search

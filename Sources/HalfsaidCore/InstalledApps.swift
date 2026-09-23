@@ -34,3 +34,11 @@ extension InstalledApps {
         }
     }
 }
+
+extension InstalledApps {
+    /// The installed apps among `openers`, e.g. the browsers when NSWorkspace lists the apps that open https links.
+    public static func names(of openers: [URL], among apps: [String: URL]) -> Set<String> {
+        let paths = Set(openers.map(\.standardizedFileURL.path))
+        return Set(apps.filter { paths.contains($0.value.standardizedFileURL.path) }.keys)
+    }
+}

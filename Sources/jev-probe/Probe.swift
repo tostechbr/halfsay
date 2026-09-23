@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import HalfsaidCore
 
@@ -15,11 +16,13 @@ import HalfsaidCore
         let urls = InstalledApps.urls()
         let apps = urls.keys.sorted()
         let aliases = InstalledApps.aliases(for: urls)
+        let openers = await MainActor.run { NSWorkspace.shared.urlsForApplications(toOpen: URL(string: "https://example.com")!) }
+        let browsers = InstalledApps.names(of: openers, among: urls)
         do {
             let replays = try await withThrowingTaskGroup(of: (Int, Replay).self) { group in
                 for (index, sentence) in sentences.enumerated() {
                     group.addTask {
-                        var replayer = Replayer(client: client, apps: apps, aliases: aliases, sentence: sentence)
+                        var replayer = Replayer(client: client, apps: apps, aliases: aliases, browsers: browsers, sentence: sentence)
                         return (index, try await replayer.run())
                     }
                 }
@@ -90,10 +93,11 @@ struct Replayer {
     private var frontmost: String
     private var replay: Replay
 
-    init(client: JevClient, apps: [String], aliases: [String: [String]], sentence: Sentence) {
+    init(client: JevClient, apps: [String], aliases: [String: [String]], browsers: Set<String>, sentence: Sentence) {
         self.client = client
         self.apps = apps
         engine.appAliases = aliases
+        engine.browsers = browsers
         self.frontmost = sentence.frontmost
         self.replay = Replay(sentence: sentence)
     }

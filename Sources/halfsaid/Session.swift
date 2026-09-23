@@ -31,6 +31,7 @@ final class Session {
         self.executor = executor
         self.log = log
         engine.appAliases = InstalledApps.aliases(for: apps)
+        engine.browsers = InstalledApps.names(of: NSWorkspace.shared.urlsForApplications(toOpen: URL(string: "https://example.com")!), among: apps)
     }
 
     /// A partial transcript: the whole utterance so far.

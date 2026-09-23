@@ -120,4 +120,9 @@ import Testing
         #expect(InstalledApps.urls(in: [a.path, b.path])["Foo"]?.path == a.appendingPathComponent("Foo.app").path)
         #expect(InstalledApps.aliases(for: InstalledApps.urls(in: [a.path]))["Foo"] == ["Foo"])
     }
+
+    @Test func browsersAreTheAppsThatOpenWebLinks() {
+        let apps = ["Safari": URL(fileURLWithPath: "/Applications/Safari.app"), "Notes": URL(fileURLWithPath: "/System/Applications/Notes.app")]
+        #expect(InstalledApps.names(of: [URL(fileURLWithPath: "/Applications/Safari.app/")], among: apps) == ["Safari"])
+    }
 }
