@@ -20,6 +20,9 @@ public struct Engine: Sendable {
     }
 
     public var earlyThreshold: Double
+    /// Opening an app is cheap to undo: a lower bar mid-sentence, but only for an app named beyond doubt (`sureApp`).
+    public var openAppThreshold: Double
+    public var sureApp: Double
     public var pauseThreshold: Double
     public var stableCount: Int
     public private(set) var consumed = 0
@@ -32,8 +35,11 @@ public struct Engine: Sendable {
     private var paused = false
     private var streak: (command: Command, count: Int)?
 
-    public init(earlyThreshold: Double = 0.85, pauseThreshold: Double = 0.7, stableCount: Int = 2) {
+    public init(earlyThreshold: Double = 0.85, openAppThreshold: Double = 0.8, sureApp: Double = 0.95,
+                pauseThreshold: Double = 0.7, stableCount: Int = 2) {
         self.earlyThreshold = earlyThreshold
+        self.openAppThreshold = openAppThreshold
+        self.sureApp = sureApp
         self.pauseThreshold = pauseThreshold
         self.stableCount = stableCount
     }
@@ -82,11 +88,11 @@ public struct Engine: Sendable {
 
     private mutating func onPartial(_ d: Decision) -> Command? {
         let candidate: Command? = switch d.action {
-        case .openApp where d.appProbability >= earlyThreshold: d.app.map(Command.openApp)
-        case .newItem: .newItem
+        case .openApp where d.confidence >= openAppThreshold && d.appProbability >= sureApp: d.app.map(Command.openApp)
+        case .newItem where d.confidence >= earlyThreshold: .newItem
         default: nil
         }
-        guard let candidate, d.confidence >= earlyThreshold else {
+        guard let candidate else {
             streak = nil
             return nil
         }

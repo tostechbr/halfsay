@@ -34,6 +34,25 @@ private func decision(_ action: Action, _ confidence: Double = 1, app: String? =
         #expect(engine.receive(decision(.openApp, app: "Notes", appP: 0.6), for: engine.hear("open no tes")!).command == nil)
     }
 
+    @Test func sureAppOpensAtLowerConfidence() {
+        var engine = Engine()
+        _ = engine.receive(decision(.openApp, 0.81, app: "Notes"), for: engine.hear("abre as notas")!)
+        #expect(engine.receive(decision(.openApp, 0.82, app: "Notes"), for: engine.hear("abre as notas e")!).command == .openApp("Notes"))
+    }
+
+    @Test func appBelowSureWaitsForThePause() {
+        var engine = Engine()
+        _ = engine.receive(decision(.openApp, app: "Google Chrome", appP: 0.9), for: engine.hear("abre o google")!)
+        #expect(engine.receive(decision(.openApp, app: "Google Chrome", appP: 0.9), for: engine.hear("abre o google chrome")!).command == nil)
+        #expect(engine.pause().command == .openApp("Google Chrome"))
+    }
+
+    @Test func newItemStillNeedsHighConfidence() {
+        var engine = Engine()
+        _ = engine.receive(decision(.newItem, 0.81), for: engine.hear("cria uma")!)
+        #expect(engine.receive(decision(.newItem, 0.82), for: engine.hear("cria uma nota")!).command == nil)
+    }
+
     @Test func newItemFiresEarlyWithoutAnApp() {
         var engine = Engine()
         _ = engine.receive(decision(.newItem), for: engine.hear("create a new")!)
