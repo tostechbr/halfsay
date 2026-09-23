@@ -1,7 +1,7 @@
 name: release
 
-# A v* tag tests, builds halfsay.app on a macOS runner and opens a draft release with the zip, for review before
-# publishing. A manual run only builds it and keeps the zip as a workflow artifact.
+# A v* tag tests, builds halfsay.app on a macOS runner and publishes the release: a dmg to drag into Applications,
+# the same app zipped, and notes grouped by commit type. A manual run only builds them and keeps them as an artifact.
 # Not notarized yet: that needs an Apple Developer ID (see the Prometeu workflow for the signing secrets it takes).
 on:
   push:
@@ -16,6 +16,8 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # the notes need the commits and tags since the last release
 
       - name: Use the newest stable Xcode on the runner (the bar's glass needs the macOS 26 SDK)
         run: |
@@ -32,18 +34,25 @@ jobs:
       - name: Build the app
         run: make app
 
-      - name: Zip it
-        run: ditto -c -k --keepParent build/halfsay.app "halfsay-${GITHUB_REF_NAME}-macos-arm64.zip"
+      # Fixed names, so the README can link releases/latest/download/halfsay-macos-arm64.dmg.
+      - name: Pack a dmg and a zip
+        run: |
+          mkdir dmg && ditto build/halfsay.app dmg/halfsay.app && ln -s /Applications dmg/Applications
+          hdiutil create -volname halfsay -srcfolder dmg -format UDZO halfsay-macos-arm64.dmg
+          ditto -c -k --keepParent build/halfsay.app halfsay-macos-arm64.zip
 
-      - name: Draft a release
+      - name: Publish the release
         if: startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" halfsay-*.zip --draft --title "halfsay $GITHUB_REF_NAME" --generate-notes
+        run: |
+          .github/release-notes.sh "$GITHUB_REF_NAME" > notes.md
+          gh release create "$GITHUB_REF_NAME" halfsay-macos-arm64.dmg halfsay-macos-arm64.zip \
+            --title "${GITHUB_REF_NAME#v}" --notes-file notes.md
 
-      - name: Keep the zip (manual runs)
+      - name: Keep them (manual runs)
         if: "!startsWith(github.ref, 'refs/tags/v')"
         uses: actions/upload-artifact@v4
         with:
           name: halfsay-macos-arm64
-          path: halfsay-*.zip
+          path: halfsay-macos-arm64.*
