@@ -21,7 +21,7 @@ Apple's recognizer transcribes your speech in your Mac's language (`--locale en-
 
 ## How it decides
 
-- **Closed actions** fire mid-sentence once 2 partials in a row agree: opening an app needs the app named beyond doubt (≥ 0.95) and the action at ≥ 0.8; a new item needs ≥ 0.85.
+- **Closed actions** fire mid-sentence once 2 partials in a row agree. Opening an app needs the app named beyond doubt (≥ 0.95) and ≥ 0.8 from the action choice or from a yes/no "does it ask to open an app?". The yes/no holds up when a second command follows ("abre as notas e digita…"), where the single choice splits between two valid actions. A new item needs ≥ 0.85.
 - **Open actions** (search, website, type text) wait for the pause: "search norbert" is not "search norbert wiener" until you stop.
 - **Jev never writes text.** Code cuts every span of what you said, Jev picks one, and it is copied verbatim.
 - Firing consumes the words, so the rest of the sentence becomes the next command.

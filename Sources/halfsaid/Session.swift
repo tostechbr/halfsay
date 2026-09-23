@@ -77,6 +77,7 @@ final class Session {
                     "utterance": utterance, "seq": request.seq, "ms": Int((ContinuousClock.now - start).seconds * 1000),
                     "tokens": tokens, "action": decision.action.rawValue, "confidence": decision.confidence,
                     "app": decision.app, "app_p": decision.appProbability, "argument": decision.argument, "complete": decision.complete,
+                    "opens_app": decision.opensApp,
                 ])
                 show(request, decision)
                 handle(engine.receive(decision, for: request))

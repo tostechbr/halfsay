@@ -8,9 +8,13 @@ public struct Decision: Equatable, Sendable {
     public var argument: String?
     /// "Is the command fully stated?" Shown, never used to fire: it swings on dangling words ("for", "and").
     public var complete: Double
+    /// Yes/no "does it ask to open an app?". Unlike the single action choice, it stays high when a second
+    /// command follows ("abre as notas e digita…"), where the choice splits between two valid actions.
+    public var opensApp: Double
 
     public init(action: Action, confidence: Double, actionProbabilities: [Action: Double] = [:],
-                app: String? = nil, appProbability: Double = 0, argument: String? = nil, complete: Double = 0) {
+                app: String? = nil, appProbability: Double = 0, argument: String? = nil, complete: Double = 0,
+                opensApp: Double = 0) {
         self.action = action
         self.confidence = confidence
         self.actionProbabilities = actionProbabilities
@@ -18,6 +22,7 @@ public struct Decision: Equatable, Sendable {
         self.appProbability = appProbability
         self.argument = argument
         self.complete = complete
+        self.opensApp = opensApp
     }
 
     init(answers: [String: JevAnswer]) throws {
@@ -33,7 +38,8 @@ public struct Decision: Equatable, Sendable {
             app: app,
             appProbability: app.flatMap { answers["app"]?.probabilities?[$0] } ?? 0,
             argument: answers["argument"]?.choice.flatMap { $0 == Questions.noMatch ? nil : $0 },
-            complete: answers["complete"]?.noul ?? 0
+            complete: answers["complete"]?.noul ?? 0,
+            opensApp: answers["opens_app"]?.noul ?? 0
         )
     }
 }

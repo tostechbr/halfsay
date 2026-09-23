@@ -2,8 +2,9 @@ import Foundation
 import Testing
 @testable import HalfsaidCore
 
-private func decision(_ action: Action, _ confidence: Double = 1, app: String? = nil, appP: Double = 1, arg: String? = nil) -> Decision {
-    Decision(action: action, confidence: confidence, app: app, appProbability: app == nil ? 0 : appP, argument: arg)
+private func decision(_ action: Action, _ confidence: Double = 1, app: String? = nil, appP: Double = 1, arg: String? = nil,
+                      opensApp: Double = 0) -> Decision {
+    Decision(action: action, confidence: confidence, app: app, appProbability: app == nil ? 0 : appP, argument: arg, opensApp: opensApp)
 }
 
 @Suite struct EngineTests {
@@ -45,6 +46,18 @@ private func decision(_ action: Action, _ confidence: Double = 1, app: String? =
         _ = engine.receive(decision(.openApp, app: "Google Chrome", appP: 0.9), for: engine.hear("abre o google")!)
         #expect(engine.receive(decision(.openApp, app: "Google Chrome", appP: 0.9), for: engine.hear("abre o google chrome")!).command == nil)
         #expect(engine.pause().command == .openApp("Google Chrome"))
+    }
+
+    @Test func yesNoOpensAppFiresWhenASecondCommandSplitsTheChoice() {
+        var engine = Engine()
+        _ = engine.receive(decision(.typeText, 0.5, app: "Notes", opensApp: 0.93), for: engine.hear("abre as notas e digita")!)
+        #expect(engine.receive(decision(.typeText, 0.46, app: "Notes", opensApp: 0.91), for: engine.hear("abre as notas e digita eu")!).command == .openApp("Notes"))
+    }
+
+    @Test func yesNoOpensAppStillNeedsASureApp() {
+        var engine = Engine()
+        _ = engine.receive(decision(.none, app: "Notes", appP: 0.7, opensApp: 0.95), for: engine.hear("abre as no")!)
+        #expect(engine.receive(decision(.none, app: "Notes", appP: 0.7, opensApp: 0.95), for: engine.hear("abre as not")!).command == nil)
     }
 
     @Test func newItemStillNeedsHighConfidence() {

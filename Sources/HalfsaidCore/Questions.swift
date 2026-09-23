@@ -67,6 +67,10 @@ enum Questions {
         if !apps.isEmpty {
             questions["app"] = .init(type: "choice", instructions: "Which installed application does `transcript` name as the one to open or use?",
                                      criteria: options(apps, escape: (noApp, "No application is named")))
+            questions["opens_app"] = .init(type: "noul", instructions: "Does `transcript` ask the computer to open or switch to an application, possibly along with other commands?", criteria: [
+                "true": .text("It asks to open or switch to an app"),
+                "false": .text("It does not ask to open an app"),
+            ])
         }
         if !spans.isEmpty {
             questions["argument"] = .init(type: "choice", instructions: "Which span of `transcript` is exactly the command's argument: the search query, the website, or the text to type?",

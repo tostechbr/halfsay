@@ -7,7 +7,8 @@ let fixture = Data("""
   "action":{"type":"choice","choice":"open_app","probabilities":{"open_app":0.97,"none":0.03},"confidence":0.9},
   "app":{"type":"choice","choice":"Notes","probabilities":{"Notes":0.96,"none":0.04},"confidence":0.9},
   "argument":{"type":"choice","choice":"no_match","probabilities":{"no_match":1.0},"confidence":1.0},
-  "complete":{"type":"noul","noul":0.81}},
+  "complete":{"type":"noul","noul":0.81},
+  "opens_app":{"type":"noul","noul":0.9}},
  "usage":{"input_tokens":1581,"output_tokens":20}}
 """.utf8)
 
@@ -16,15 +17,16 @@ private func json(_ body: JevBody) throws -> [String: Any] {
 }
 
 @Suite struct QuestionsTests {
-    @Test func bodyCarriesStateAndFourQuestions() throws {
+    @Test func bodyCarriesStateAndFiveQuestions() throws {
         let body = try json(Questions.body(tail: "open notes", frontmost: "Finder", apps: ["Notes"], spans: ["notes"], model: "jev-latest"))
         #expect(body["model"] as? String == "jev-latest")
         let state = try #require(body["state"] as? [String: Any])
         #expect(state["transcript"] as? String == "open notes")
         #expect(state["frontmost_app"] as? String == "Finder")
         let questions = try #require(body["questions"] as? [String: [String: Any]])
-        #expect(Set(questions.keys) == ["action", "app", "argument", "complete"])
+        #expect(Set(questions.keys) == ["action", "app", "argument", "complete", "opens_app"])
         #expect(questions["complete"]?["type"] as? String == "noul")
+        #expect(questions["opens_app"]?["type"] as? String == "noul")
         let actions = try #require(questions["action"]?["criteria"] as? [String: [String: Any]])
         #expect(Set(actions.keys) == Set(Action.allCases.map(\.rawValue)))
         #expect(actions["type_text"]?["what"] is String)
@@ -62,7 +64,7 @@ private func json(_ body: JevBody) throws -> [String: Any] {
         let response = try JSONDecoder().decode(JevResponse.self, from: fixture)
         let decision = try Decision(answers: response.answers)
         #expect(decision == Decision(action: .openApp, confidence: 0.9, actionProbabilities: [.openApp: 0.97, .none: 0.03],
-                                     app: "Notes", appProbability: 0.96, argument: nil, complete: 0.81))
+                                     app: "Notes", appProbability: 0.96, argument: nil, complete: 0.81, opensApp: 0.9))
         #expect(response.usage?.inputTokens == 1581)
     }
 

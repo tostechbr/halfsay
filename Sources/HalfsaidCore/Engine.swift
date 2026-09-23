@@ -87,10 +87,14 @@ public struct Engine: Sendable {
     }
 
     private mutating func onPartial(_ d: Decision) -> Command? {
-        let candidate: Command? = switch d.action {
-        case .openApp where d.confidence >= openAppThreshold && d.appProbability >= sureApp: d.app.map(Command.openApp)
-        case .newItem where d.confidence >= earlyThreshold: .newItem
-        default: nil
+        // Either signal may carry "open the app": the action choice, or the yes/no that survives a second command.
+        let asksForApp = max(d.opensApp, d.action == .openApp ? d.confidence : 0)
+        let candidate: Command? = if asksForApp >= openAppThreshold && d.appProbability >= sureApp {
+            d.app.map(Command.openApp)
+        } else if d.action == .newItem && d.confidence >= earlyThreshold {
+            .newItem
+        } else {
+            nil
         }
         guard let candidate else {
             streak = nil
