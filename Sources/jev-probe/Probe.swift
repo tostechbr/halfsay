@@ -32,18 +32,26 @@ import HalfsaidCore
     }
 }
 
+/// The eval: each sentence with the commands it should fire, in order. Failures found on 22/09 stay here as regressions.
 let demo = [
-    Sentence(frontmost: "Finder", text: "can you open up the notes app for me and once you're there can you create a new note"),
-    Sentence(frontmost: "Notes", text: "and inside this new note let's make the title say hello"),
-    Sentence(frontmost: "Finder", text: "can you open up safari and google search norbert wiener"),
-    Sentence(frontmost: "Safari", text: "now can you open up x dot com"),
-    Sentence(frontmost: "Finder", text: "abre o safari e pesquisa receita de pão de queijo"),
-    Sentence(frontmost: "Finder", text: "i was just telling my friend about the notes app"),
+    Sentence(frontmost: "Finder", text: "can you open up the notes app for me and once you're there can you create a new note", expect: ["open Notes", "new item"]),
+    Sentence(frontmost: "Notes", text: "and inside this new note let's make the title say hello", expect: ["type “hello”"]),
+    Sentence(frontmost: "Finder", text: "can you open up safari and google search norbert wiener", expect: ["open Safari", "search “norbert wiener”"]),
+    Sentence(frontmost: "Safari", text: "now can you open up x dot com", expect: ["open https://x.com"]),
+    Sentence(frontmost: "Finder", text: "abre o safari e pesquisa receita de pão de queijo", expect: ["open Safari", "search “receita de pão de queijo”"]),
+    Sentence(frontmost: "Finder", text: "i was just telling my friend about the notes app", expect: []),
+    Sentence(frontmost: "Terminal", text: "abre as notas e cria uma nota nova", expect: ["open Notes", "new item"]),
+    Sentence(frontmost: "Finder", text: "pesquisa receita de bolo e depois abre as notas", expect: ["search “receita de bolo”", "open Notes"]),
+    Sentence(frontmost: "Finder", text: "open safari and search for cheap flights to lisbon and then open notes",
+             expect: ["open Safari", "search “cheap flights to lisbon”", "open Notes"]),
+    Sentence(frontmost: "Finder", text: "abre o google e pesquisa pão de queijo", expect: ["search “pão de queijo”"]),
+    Sentence(frontmost: "Notes", text: "digita nos vemos amanhã", expect: ["type “nos vemos amanhã”"]),
 ]
 
 struct Sentence: Sendable {
     let frontmost: String
     let text: String
+    var expect: [String]? = nil
 }
 
 struct Row: Sendable {
@@ -65,6 +73,8 @@ struct Replay: Sendable {
     let sentence: Sentence
     var rows: [Row] = []
     var fires: [Fire] = []
+
+    var passed: Bool { sentence.expect == fires.map(\.command.description) }
 }
 
 struct Replayer {
@@ -132,8 +142,14 @@ func render(_ replays: [Replay], apps: Int) -> String {
         let fired = replay.fires.map { fire in
             fire.atPause ? "\(fire.command) at the pause" : "\(fire.command) after \(fire.heard)/\(total) words (\(total - fire.heard) early)"
         }
-        lines += ["", "**Fired:** " + (fired.isEmpty ? "nothing" : fired.joined(separator: " · ")), ""]
+        lines += ["", "**Fired:** " + (fired.isEmpty ? "nothing" : fired.joined(separator: " · "))]
+        if let expect = replay.sentence.expect {
+            lines.append(replay.passed ? "✅ as expected" : "❌ expected: " + (expect.isEmpty ? "nothing" : expect.joined(separator: " · ")))
+        }
+        lines.append("")
     }
+    let graded = replays.filter { $0.sentence.expect != nil }
+    if !graded.isEmpty { lines.append("**Eval: \(graded.filter(\.passed).count)/\(graded.count) as expected**\n") }
     let rows = replays.flatMap(\.rows)
     guard !rows.isEmpty else { return lines.joined(separator: "\n") }
     let ms = rows.map(\.ms).sorted()
