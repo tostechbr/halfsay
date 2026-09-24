@@ -8,10 +8,13 @@ enum Vocabulary {
         "favor", "meu", "minha", "meus", "minhas", "mim", "ai", "entao", "depois", "agora",
     ]
     static let commandVerbs: Set<String> = [
-        "search", "look", "find", "type", "write", "open", "go", "enter",
+        "search", "look", "find", "type", "write", "open", "go", "enter", "press", "hit",
         "pesquisa", "pesquisar", "pesquise", "procura", "procurar", "busca", "buscar",
         "digita", "digitar", "digite", "escreve", "escrever", "escreva", "abre", "abrir", "abra", "vai", "ir", "entra", "entrar",
+        "aperta", "apertar", "aperte", "pressiona", "pressionar", "pressione",
     ]
+    /// Keys a command presses by name ("dá enter", "hit return"). ponytail: Enter only; Esc, Tab and ⌘W come next.
+    static let keys: Set<String> = ["enter", "return"]
     /// An argument never starts with these ("digita | ls", "e | bom dia")...
     static let connectives: Set<String> = ["e", "and", "then", "depois", "ou", "or", "entao"]
     /// ...nor ends on a dangling one ("receita de |"). Not "com": "x dot com".

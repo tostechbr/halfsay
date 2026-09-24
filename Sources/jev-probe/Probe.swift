@@ -55,6 +55,10 @@ let demo = [
     Sentence(frontmost: "Finder", text: "abre o notes escreve lista de compras", expect: ["open Notes", "type “lista de compras”"]),
     Sentence(frontmost: "Finder", text: "entra no site do youtube", expect: ["open https://youtube.com"]),
     Sentence(frontmost: "Terminal", text: "abre o linkedin pelo google", expect: ["open https://linkedin.com"]),
+    Sentence(frontmost: "Notes", text: "digita bom dia e dá enter", expect: ["type “bom dia”", "press Enter"]),
+    Sentence(frontmost: "Terminal", text: "aperta enter", expect: ["press Enter"]),
+    Sentence(frontmost: "Notes", text: "type hello and press enter", expect: ["type “hello”", "press Enter"]),
+    Sentence(frontmost: "Notes", text: "a tecla enter do meu teclado quebrou", expect: []),  // talks about Enter, asks nothing
 ]
 
 struct Sentence: Sendable {

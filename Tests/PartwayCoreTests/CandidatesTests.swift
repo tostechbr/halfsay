@@ -24,6 +24,14 @@ import Testing
         #expect(Candidates.spans(of: ["type", "the", "meeting"]).contains("the meeting"))  // an article may start the text
     }
 
+    /// "digita claude e dá enter" must type "claude", never "claude e dá enter".
+    @Test func anArgumentNeverSwallowsTheNextCommand() {
+        let spans = Candidates.spans(of: ["claude", "e", "dá", "enter"])
+        #expect(spans.contains("claude"))
+        #expect(!spans.contains { $0.contains("enter") })
+        #expect(Candidates.spans(of: ["pão", "e", "queijo"]).contains("pão e queijo"))
+    }
+
     @Test func commandWordsAndFillerAreNeverArguments() {
         #expect(Candidates.spans(of: ["e", "pesquisar"]).isEmpty)
         let spans = Candidates.spans(of: ["e", "pesquisar", "receita"])

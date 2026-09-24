@@ -47,7 +47,9 @@ import PartwayCore
 
         let model = BarModel()
         session.bar = model
-        let controller = AppController(session: session, model: model, options: options, hints: apps.keys.sorted(),
+        // The recognizer mishears names it has never seen: app names and "Claude Code" help it.
+        let hints = apps.keys.sorted() + ["Claude", "Claude Code"]
+        let controller = AppController(session: session, model: model, options: options, hints: hints,
                                        hasKey: key != nil, log: log)
         let app = NSApplication.shared
         app.setActivationPolicy(.accessory)

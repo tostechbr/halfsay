@@ -9,6 +9,7 @@ extension Action {
         case .openURL: "open site"
         case .webSearch: "search"
         case .typeText: "type text"
+        case .pressEnter: "press enter"
         case .none: "not yet"
         }
     }

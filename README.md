@@ -39,8 +39,9 @@ Apple Silicon, built for macOS 14 and later, tested on macOS 26 (where the bar i
 | "abre o linkedin no google", "open x dot com" | opens the site |
 | "pesquisa receita de pão de queijo", "google search norbert wiener" | searches, in the browser in front |
 | "digita bom dia", "make the title say hello" | types into the app in front |
+| "digita ls e dá enter", "press enter" | presses Return in the app in front, once you pause |
 
-Chain them in one breath: "abre o terminal e digita ls". It listens in your Mac's language; Portuguese is tested by voice, English with the probe below.
+Chain them in one breath: "abre o terminal, digita ls e dá enter". It listens in your Mac's language; Portuguese is tested by voice, English with the probe below.
 
 ## How it decides
 
@@ -50,7 +51,7 @@ Chain them in one breath: "abre o terminal e digita ls". It listens in your Mac'
 
 - Every partial transcript goes to Jev in one request: what to do, which app, which words are the argument, and a yes/no "does it ask to open an app?".
 - **Opening an app fires mid-sentence** once two partials in a row agree and the app is named beyond doubt. A new item needs 0.85.
-- **Search, site and typing wait for the pause**: "search norbert" is not "search norbert wiener" until you stop.
+- **Search, site, typing and Enter wait for the pause**: "search norbert" is not "search norbert wiener" until you stop, and Enter sends or runs things, so it also needs 0.85.
 - **At the pause it acts on the outcome, not the label.** Going to LinkedIn, searching for it, or opening the browser you named all land on LinkedIn, so their probabilities add up; typing and creating a note do not.
 - **Jev never writes text.** Code cuts every span of what you said, Jev picks one, and it is copied verbatim. Spans made of the command itself ("digita", "pesquisar") are never offered.
 - A command ends where its own words end, plus any "how or where" ("no Google", "por favor"), so the rest of the sentence becomes the next command.

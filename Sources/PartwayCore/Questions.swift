@@ -50,8 +50,10 @@ enum Questions {
                                          examples: ["go to github dot com", "open wikipedia.org", "entra no youtube"]),
         Action.webSearch.rawValue: .detail(what: "Search the web for something",
                                            examples: ["google the weather in lisbon", "look up how tall everest is", "procura o horário do jogo"]),
-        Action.typeText.rawValue: .detail(what: "Type, write or enter specific words into the frontmost app",
+        Action.typeText.rawValue: .detail(what: "Type or write specific words into the frontmost app",
                                           examples: ["type see you tomorrow", "write buy milk", "put meeting notes as the heading", "escreve bom dia", "digita obrigado pela ajuda"]),
+        Action.pressEnter.rawValue: .detail(what: "Press the Enter (Return) key, only when the speaker says enter or return out loud",
+                                            examples: ["press enter", "hit return", "aperta enter", "dá enter"]),
         Action.none.rawValue: .detail(what: "Not a command for the computer yet: filler, thanks, or talk about something",
                                       examples: ["can you", "okay so", "thanks"]),
     ]

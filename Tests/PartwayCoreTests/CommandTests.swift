@@ -31,6 +31,7 @@ import Testing
         #expect(Command.openURL(URL(string: "https://x.com")!).description == "open https://x.com")
         #expect(Command.webSearch("norbert wiener").description == "search “norbert wiener”")
         #expect(Command.typeText("hello").description == "type “hello”")
+        #expect(Command.pressEnter.description == "press Enter")
     }
 
     @Test func browserCommandsHaveAWebAddress() {
