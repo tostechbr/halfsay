@@ -22,6 +22,12 @@ public enum Candidates {
                 let normalized = words.map(Vocabulary.normalized)
                 guard !normalized.allSatisfy(framing.contains), !leading.contains(normalized[0]),
                       !trailing.contains(normalized[normalized.count - 1]) else { continue }
+                // Nor does it run into the next command: "digita claude | e dá enter" types "claude".
+                let chained = normalized.indices.dropFirst().contains { index in
+                    Vocabulary.connectives.contains(normalized[index])
+                        && normalized[(index + 1)...].contains { Vocabulary.commandVerbs.contains($0) || Vocabulary.keys.contains($0) }
+                }
+                guard !chained else { continue }
                 let span = words.joined(separator: " ")
                 if seen.insert(span).inserted { spans.append(span) }
             }
