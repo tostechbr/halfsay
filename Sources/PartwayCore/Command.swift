@@ -7,6 +7,7 @@ public enum Command: Equatable, Sendable {
     case openURL(URL)
     case webSearch(String)
     case typeText(String)
+    case pressEnter
 }
 
 extension Command: CustomStringConvertible {
@@ -17,6 +18,7 @@ extension Command: CustomStringConvertible {
         case .openURL(let url): "open \(url.absoluteString)"
         case .webSearch(let query): "search “\(query)”"
         case .typeText(let text): "type “\(text)”"
+        case .pressEnter: "press Enter"
         }
     }
 }

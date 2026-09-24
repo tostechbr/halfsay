@@ -24,6 +24,8 @@ public struct Engine: Sendable {
     public var openAppThreshold: Double
     public var sureApp: Double
     public var pauseThreshold: Double
+    /// Enter sends and runs things: besides the pause, it needs a sure read.
+    public var enterThreshold: Double
     public var stableCount: Int
     public private(set) var consumed = 0
     public var appAliases: [String: [String]] = [:]
@@ -39,11 +41,12 @@ public struct Engine: Sendable {
     private var lastFired: Command?
 
     public init(earlyThreshold: Double = 0.85, openAppThreshold: Double = 0.8, sureApp: Double = 0.95,
-                pauseThreshold: Double = 0.7, stableCount: Int = 2) {
+                pauseThreshold: Double = 0.7, enterThreshold: Double = 0.85, stableCount: Int = 2) {
         self.earlyThreshold = earlyThreshold
         self.openAppThreshold = openAppThreshold
         self.sureApp = sureApp
         self.pauseThreshold = pauseThreshold
+        self.enterThreshold = enterThreshold
         self.stableCount = stableCount
     }
 
@@ -112,8 +115,8 @@ public struct Engine: Sendable {
     /// Actions grouped by what ends up on screen: going to a site, searching for it, or opening the browser it names.
     private func outcomes(for d: Decision) -> [[Action]] {
         let namesBrowser = d.app.map(browsers.contains) ?? false
-        return namesBrowser ? [[.openURL, .webSearch, .openApp], [.newItem], [.typeText]]
-                            : [[.openURL, .webSearch], [.openApp], [.newItem], [.typeText]]
+        return namesBrowser ? [[.openURL, .webSearch, .openApp], [.newItem], [.typeText], [.pressEnter]]
+                            : [[.openURL, .webSearch], [.openApp], [.newItem], [.typeText], [.pressEnter]]
     }
 
     /// Acts on the chance of an outcome, not on how concentrated one label is: "abre o LinkedIn no Google" splits
@@ -145,6 +148,7 @@ public struct Engine: Sendable {
         case .openURL: d.argument.flatMap(Site.url).map(Command.openURL)
         case .webSearch: d.argument.map(Command.webSearch)
         case .typeText: d.argument.map(Command.typeText)
+        case .pressEnter: d.probability(of: .pressEnter) >= enterThreshold ? .pressEnter : nil
         case .none: nil
         }
     }
@@ -191,6 +195,7 @@ public struct Engine: Sendable {
         case .openApp: mention(of: aliases, in: words)
         case .newItem: nil  // ponytail: no span for "a new note", so a command said in the same breath after it is lost
         case .openURL, .webSearch, .typeText: end(of: argument.map { $0.split(separator: " ").map(Vocabulary.normalized) } ?? [], in: words)
+        case .pressEnter: words.firstIndex(where: Vocabulary.keys.contains).map { $0 + 1 }  // "dá enter | e abre…"
         }
         guard let own else { return tail.count }
         return modifierEnd(from: own, in: words)

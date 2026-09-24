@@ -103,6 +103,29 @@ private func decision(_ action: Action, _ confidence: Double = 1, app: String? =
         #expect(engine.receive(decision(.typeText, arg: "oi"), for: next).command == .typeText("oi"))
     }
 
+    @Test func enterWaitsForThePauseAndMustBeSure() {
+        var engine = Engine()
+        #expect(engine.receive(decision(.pressEnter), for: engine.hear("aperta enter")!).command == nil)  // it sends and runs things
+        #expect(engine.pause().command == .pressEnter)
+        engine.reset()
+        _ = engine.receive(decision(.pressEnter, 0.8), for: engine.hear("aperta enter")!)
+        #expect(engine.pause().command == nil)
+    }
+
+    @Test func typingThenEnterFiresBothInOrder() throws {
+        var engine = Engine()
+        _ = engine.receive(decision(.typeText, arg: "ls"), for: engine.hear("digita ls e dá enter")!)
+        let typed = engine.pause()
+        #expect(typed.command == .typeText("ls"))
+        let enter = try #require(typed.request)
+        #expect(enter.tail == ["e", "dá", "enter"])
+        #expect(engine.receive(decision(.pressEnter), for: enter).command == .pressEnter)
+    }
+
+    @Test func enterEndsAtItsKey() {
+        #expect(Engine.wordsUsed(by: .pressEnter, argument: nil, aliases: [], in: ["dá", "enter", "e", "abre", "o", "safari"]) == 2)
+    }
+
     @Test func openTextWaitsForThePause() {
         var engine = Engine()
         #expect(engine.receive(decision(.webSearch, arg: "norbert"), for: engine.hear("google norbert")!).command == nil)

@@ -7,6 +7,7 @@ import Testing
         #expect(Action.openApp.label == "open app")
         #expect(Action.typeText.label == "type text")
         #expect(Action.none.label == "not yet")
+        #expect(Action.pressEnter.label == "press enter")
     }
 
     @Test func topActionsComeMostLikelyFirst() {

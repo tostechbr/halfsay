@@ -19,7 +19,7 @@ struct Executor {
         var description: String {
             switch self {
             case .unknownApp(let name): "no installed app named \(name)"
-            case .needsAccessibility: "ℹ︎ Typing and ⌘N need Accessibility access for the app running partway (your terminal): System Settings → Privacy & Security → Accessibility. Opening apps and sites works without it."
+            case .needsAccessibility: "ℹ︎ Typing, ⌘N and Enter need Accessibility access for the app running partway (your terminal): System Settings → Privacy & Security → Accessibility. Opening apps and sites works without it."
             case .keyboard: "could not create a keyboard event"
             }
         }
@@ -40,6 +40,8 @@ struct Executor {
                 try await Task.sleep(for: Self.newItemSettles)
             case .typeText(let text):
                 try type(text)
+            case .pressEnter:
+                try press(key: 0x24, flags: [])  // Return
             case .openURL, .webSearch:
                 if let url = command.webURL { try await browse(url) }
             }
