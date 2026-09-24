@@ -6,7 +6,7 @@ partway listens to your microphone and can type into the app in front, so this i
 
 **The key.** Your Jev API key comes from `TYPESAFE_API_KEY` or from `~/.config/partway/api-key`, a file only your user can read. It goes only to TypeSafe, in the request's Authorization header, and is never written to a log. `.env` is ignored by Git; if a key leaks anyway, rotate it in the TypeSafe console.
 
-**What it can do.** With Accessibility on, partway types text and presses ⌘N in the app in front. It never presses Return. Anyone who speaks near the mic while it listens can drive it, a video playing out loud included, so pause it with ⌥Space when you are not using it: the mic is off while paused.
+**What it can do.** With Accessibility on, partway types text and presses ⌘N in the app in front. It presses Return, which sends messages and runs Terminal commands, only when you say enter or return out loud ("dá enter", "press enter"), and only once you pause, never mid-sentence. Anyone who speaks near the mic while it listens can drive it, a video playing out loud included, so pause it with ⌥Space when you are not using it: the mic is off while paused.
 
 **Logs.** `--log` is off by default. When on, `~/Library/Logs/partway/` keeps everything the mic heard. Delete it when you are done, and cut private lines before attaching any to an issue.
 
